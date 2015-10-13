@@ -100,39 +100,14 @@ function getChannelsData (buffer, format) {
  * Copy data to the buffer’s channel
  */
 function copyToChannel (buffer, data, channel, format) {
-	xxx
-};
+	format = normalizeFormat(format);
 
+	data.forEach(function (value, i) {
+		var offset = format.interleaved ? channel + i * format.channels : channel * data.length + i;
+		buffer[format.writeMethodName](value, offset * format.sampleSize);
+	});
 
-/**
- * Transform from inverleaved form to planar
- */
-function deinterleave (buffer, format) {
-	xxx
-};
-
-
-/**
- * Convert buffer from planar to interleaved form
- */
-function interleave (buffer, format) {
-	xxx
-};
-
-
-/**
- * Downmix channels
- */
-function downmix (buffer) {
-	xxx
-};
-
-
-/**
- * Upmix channels
- */
-function upmix (buffer) {
-	xxx
+	return buffer;
 };
 
 
@@ -156,12 +131,9 @@ function convertFormat (buffer, from, to) {
 
 	//get normalized data for channels
 	getChannelsData(buffer, from).forEach(function (channelData, channel) {
-		channelData.forEach(function (value, i) {
-			//convert each data sample to new format
-			var value = convertSample(value, from, to);
-			var offset = to.interleaved ? channel + i * to.channels : channel * channelData.length + i;
-			chunk[to.writeMethodName](value, offset * to.sampleSize);
-		})
+		copyToChannel(chunk, channelData.map(function (value) {
+			return convertSample(value, from, to);
+		}), channel, to);
 	});
 
 	return chunk;
@@ -196,6 +168,38 @@ function convertSample (value, from, to) {
 
 	return value;
 }
+
+
+/**
+ * Transform from inverleaved form to planar
+ */
+function deinterleave (buffer, format) {
+	xxx
+};
+
+
+/**
+ * Convert buffer from planar to interleaved form
+ */
+function interleave (buffer, format) {
+	xxx
+};
+
+
+/**
+ * Downmix channels
+ */
+function downmix (buffer) {
+	xxx
+};
+
+
+/**
+ * Upmix channels
+ */
+function upmix (buffer) {
+	xxx
+};
 
 
 /**
