@@ -18,7 +18,8 @@ util.defaultFormat === {
 
 
 /** Normalize passed format or return default format */
-util.normalizeFormat(format) === {
+var format = util.normalizeFormat(format);
+format === {
 	//...
 	//all the default format params plus precalculated params:
 	sampleSize: 4,
@@ -29,12 +30,12 @@ util.normalizeFormat(format) === {
 };
 
 
-/** Get channel data from the buffer [LLLL...] */
-util.getChannelData(buffer, channel, format);
+/** Get channel data from the buffer */
+var channelData = util.getChannelData(buffer, channel, format);
 
 
 /** Get all channels data, [[LLLL...], [RRRR...], ...] */
-util.getChannelsData(buffer, format);
+var channelsData = util.getChannelsData(buffer, format);
 
 
 /** Copy channel data to buffer */
@@ -42,15 +43,15 @@ util.copyToChannel(buffer, data, channel, format);
 
 
 /** Convert buffer from format A to format B */
-util.convertFormat(buffer, formatA, formatB?);
+var newBuffer = util.convertFormat(buffer, formatA, formatB?);
 
 
 /** Convert value from format A to format B */
-util.convertSample(value, formatA, formatB?);
+var value = util.convertSample(value, formatA, formatB?);
 
 
 /** Return buffer method suffix for the format, e.g. `UInt16LE` */
-util.getMethodSuffix(format);
+var suffix = util.getMethodSuffix(format);
 ```
 
 > **Related**<br/>
