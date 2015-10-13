@@ -4,7 +4,6 @@
 ```js
 var util = require('pcm-util');
 
-
 /** Default PCM format to use for any operations */
 util.defaultFormat === {
 	channels: 2,
@@ -20,9 +19,8 @@ util.defaultFormat === {
 
 /** Normalize passed format or return default format */
 util.normalizeFormat(format) === {
-	//...all the default format params
-
-	//plus precalculated params
+	//...
+	//all the default format params plus precalculated params:
 	sampleSize: 4,
 	methodSuffix: 'Int16LE',
 	readMethodName: 'readInt16LE',
@@ -31,11 +29,11 @@ util.normalizeFormat(format) === {
 };
 
 
-/** Get channel data from the buffer */
+/** Get channel data from the buffer [LLLL...] */
 util.getChannelData(buffer, channel, format);
 
 
-/** Get separated parsed data separated by channels, [[LLLL...], [RRRR...], ...] */
+/** Get all channels data, [[LLLL...], [RRRR...], ...] */
 util.getChannelsData(buffer, format);
 
 
