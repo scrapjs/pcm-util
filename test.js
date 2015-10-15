@@ -25,7 +25,7 @@ describe('Sample conversions', function () {
 });
 
 describe('Map samples', function () {
-	it('Simple', function () {
+	it('Float', function () {
 		var buf = new Buffer(8);
 		buf.writeFloatLE(1.0, 0);
 		buf.writeFloatLE(-0.5, 4);
@@ -36,6 +36,19 @@ describe('Map samples', function () {
 
 		assert.equal(-1, val1);
 		assert.equal(0.5, val2);
+	});
+
+	it('Int', function () {
+		var buf = new Buffer(8);
+		buf.writeInt16LE(20000, 0);
+		buf.writeInt16LE(-10000, 4);
+
+		var newBuf = util.mapSamples(buf, function (value) { return -1 * value;});
+		var val1 = newBuf.readInt16LE(0);
+		var val2 = newBuf.readInt16LE(4);
+
+		assert.equal(-20000, val1);
+		assert.equal(10000, val2);
 	});
 });
 

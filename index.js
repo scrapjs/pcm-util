@@ -1,10 +1,13 @@
+var os = require('os');
+
+
 /**
  * Default input/output format
  */
 var defaultFormat = {
 	channels: 2,
 	sampleRate: 44100,
-	byteOrder: 'LE',
+	byteOrder: os.endianness instanceof Function ? os.endianness() : 'LE',
 	bitDepth: 16,
 	signed: true,
 	float: false,
@@ -43,6 +46,8 @@ function normalizeFormat (format) {
 		format.bitDepth = 32;
 		format.signed = true;
 	}
+
+	if(format.bitDepth <= 8) format.byteOrder = '';
 
 	//precalc other things
 	format.sampleSize = format.bitDepth / 8;
