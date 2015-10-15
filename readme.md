@@ -31,15 +31,15 @@ format === {
 
 
 /** Get channel data from the buffer */
-var channelData = util.getChannelData(buffer, channel, format);
+var channelData = util.getChannelData(buffer, channel, format?);
 
 
 /** Get all channels data, [[LLLL...], [RRRR...], ...] */
-var channelsData = util.getChannelsData(buffer, format);
+var channelsData = util.getChannelsData(buffer, format?);
 
 
 /** Copy channel data to buffer */
-util.copyToChannel(buffer, data, channel, format);
+util.copyToChannel(buffer, data, channel, format?);
 
 
 /** Convert buffer from format A to format B */
@@ -52,6 +52,10 @@ var value = util.convertSample(value, formatA, formatB?);
 
 /** Return buffer method suffix for the format, e.g. `UInt16LE` */
 var suffix = util.getMethodSuffix(format);
+
+
+/** Map buffer sample values, preserving the format. */
+var newBuffer = util.mapSamples(buffer, function (value) { return value/2 }, format?);
 ```
 
 > **Related**<br/>

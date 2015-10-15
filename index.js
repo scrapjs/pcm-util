@@ -104,6 +104,7 @@ function copyToChannel (buffer, data, channel, format) {
 
 	data.forEach(function (value, i) {
 		var offset = format.interleaved ? channel + i * format.channels : channel * data.length + i;
+		if (!format.float) value = Math.round(value);
 		buffer[format.writeMethodName](value, offset * format.sampleSize);
 	});
 
@@ -189,7 +190,7 @@ function interleave (buffer, format) {
 /**
  * Downmix channels
  */
-function downmix (buffer) {
+function downmix (buffer, format) {
 	xxx
 };
 
@@ -197,7 +198,7 @@ function downmix (buffer) {
 /**
  * Upmix channels
  */
-function upmix (buffer) {
+function upmix (buffer, format) {
 	xxx
 };
 
@@ -205,17 +206,46 @@ function upmix (buffer) {
 /**
  * Resample buffer
  */
-function resample (buffer, rateA, rateB) {
+function resample (buffer, rateA, rateB, format) {
 	xxx
 };
 
 
 /**
- * Remap channels
+ * Remap channels not changing the format
  */
-function mapChannels(buffer, format, channels) {
+function mapChannels (buffer, channels, format) {
 	xxx
 };
+
+
+/**
+ * Map samples not changing the format
+ */
+function mapSamples (buffer, fn, format) {
+	format = normalizeFormat(format);
+
+	var samplesNumber = Math.floor(buffer.length / format.sampleSize);
+	var value, offset;
+
+	//don’t mutate the initial buffer
+	var buf = new Buffer(buffer.length);
+
+	for (var i = 0; i < samplesNumber; i++) {
+		offset = i * format.sampleSize;
+
+		//read value
+		value = buffer[format.readMethodName](offset);
+
+		//transform value
+		value = fn(value);
+
+		//write value
+		buf[format.writeMethodName](value, offset);
+	}
+
+	return buf;
+}
 
 
 
@@ -226,5 +256,6 @@ module.exports = {
 	convertSample: convertSample,
 	normalizeFormat: normalizeFormat,
 	getChannelData: getChannelData,
-	copyToChannel: copyToChannel
+	copyToChannel: copyToChannel,
+	mapSamples: mapSamples
 };
