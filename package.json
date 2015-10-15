@@ -24,7 +24,6 @@
   },
   "homepage": "https://github.com/audio-lab/pcm-util",
   "dependencies": {
-    "xtend": "^4.0.0"
   },
   "devDependencies": {
     "mocha": "^2.3.3"
