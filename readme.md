@@ -13,7 +13,7 @@ util.defaultFormat === {
 	float: false,
 	sampleRate: 44100,
 	interleaved: true,
-	samplesPerFrame: undefined
+	samplesPerFrame: null
 };
 
 

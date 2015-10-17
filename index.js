@@ -245,6 +245,9 @@ function mapSamples (buffer, fn, format) {
 		//transform value
 		value = fn(value);
 
+		//avoid int outofbounds error
+		if (!format.float) value = Math.round(value);
+
 		//write value
 		buf[format.writeMethodName](value, offset);
 	}

@@ -45,16 +45,22 @@ describe('Map samples', function () {
 	});
 
 	it('Int', function () {
-		var buf = new Buffer(8);
-		buf.writeInt16LE(20000, 0);
-		buf.writeInt16LE(-10000, 4);
+		var buf = new Buffer(16);
+		buf.writeInt16LE(20001, 0);
+		buf.writeInt16LE(-10001, 4);
+		buf.writeInt16LE(32767, 8);
+		buf.writeInt16LE(-32768, 12);
 
-		var newBuf = util.mapSamples(buf, function (value) { return -1 * value;});
+		var newBuf = util.mapSamples(buf, function (value) { return -0.5 * value;});
 		var val1 = newBuf.readInt16LE(0);
 		var val2 = newBuf.readInt16LE(4);
+		var val3 = newBuf.readInt16LE(8);
+		var val4 = newBuf.readInt16LE(12);
 
-		assert.equal(-20000, val1);
-		assert.equal(10000, val2);
+		assert.equal(-10000, val1);
+		assert.equal(5001, val2);
+		assert.equal(-16383, val3);
+		assert.equal(16384, val4);
 	});
 });
 
