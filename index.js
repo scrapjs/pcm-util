@@ -12,7 +12,7 @@ var defaultFormat = {
 	signed: true,
 	float: false,
 	interleaved: true,
-	samplesPerFrame: null
+	samplesPerFrame: 1024
 };
 
 
