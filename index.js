@@ -36,7 +36,7 @@ function normalizeFormat (format) {
 
 	//bring default format values
 	for (var key in defaultFormat) {
-		if (!format.hasOwnProperty(key)) {
+		if (format[key] === undefined) {
 			format[key] = defaultFormat[key];
 		}
 	}

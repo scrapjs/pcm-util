@@ -6,7 +6,13 @@ describe('Method suffix', function () {
 });
 
 describe('Normalize format', function () {
-
+	it('Keep prototype values', function () {
+		var A = function(){};
+		A.prototype = Object.create({samplesPerFrame: 1});
+		var a = new A();
+		util.normalizeFormat(a);
+		assert.equal(a.samplesPerFrame, 1);
+	});
 });
 
 describe('Sample conversions', function () {
