@@ -15,6 +15,17 @@ describe('Normalize format', function () {
 	});
 });
 
+describe('Frame length', function () {
+	it('Float', function () {
+		var buf = new Buffer(8);
+		buf.writeFloatLE(1.0, 0);
+		buf.writeFloatLE(-0.5, 4);
+
+		assert(util.getFrameLength(buf, {float: true, channels:1}), 2);
+		assert(util.getFrameLength(buf, {float: true, channels:2}), 1);
+	});
+});
+
 describe('Sample conversions', function () {
 	it('FloatLE → Int16BE', function () {
 		var buf = new Buffer(8);

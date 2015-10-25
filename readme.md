@@ -56,6 +56,10 @@ var suffix = util.getMethodSuffix(format);
 
 /** Map buffer sample values, preserving the format. */
 var newBuffer = util.mapSamples(buffer, function (value) { return value/2 }, format?);
+
+
+/** Get channel frame length, i. e. number of samples per channel */
+util.getFrameLength(buffer, format);
 ```
 
 > **Related**<br/>

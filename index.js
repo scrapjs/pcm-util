@@ -72,7 +72,7 @@ function getChannelData (buffer, channel, format) {
 	format = normalizeFormat(format);
 
 	var method = format.readMethodName;
-	var frameLength = Math.floor(buffer.length / format.sampleSize / format.channels);
+	var frameLength = getFrameLength(buffer, format);
 	var data = [];
 	var offset;
 
@@ -256,6 +256,13 @@ function mapSamples (buffer, fn, format) {
 }
 
 
+/** Get frame size from the buffer, for a channel */
+function getFrameLength (buffer, format) {
+	format = normalizeFormat(format);
+
+	return Math.floor(buffer.length / format.sampleSize / format.channels);
+}
+
 
 module.exports = {
 	defaultFormat: defaultFormat,
@@ -265,5 +272,6 @@ module.exports = {
 	normalizeFormat: normalizeFormat,
 	getChannelData: getChannelData,
 	copyToChannel: copyToChannel,
-	mapSamples: mapSamples
+	mapSamples: mapSamples,
+	getFrameLength: getFrameLength
 };
