@@ -42,6 +42,9 @@ describe('Sample conversions', function () {
 
 	it('Irrevertibility', function () {
 		assert.equal(util.convertSample(32767), 32767);
+		assert.equal(util.convertSample(0), 0);
+		assert.equal(util.convertSample(-32767), -32767);
+		assert.equal(util.convertSample(1, {float: true}, {float: true}), 1);
 	});
 
 	it('Float align', function () {
