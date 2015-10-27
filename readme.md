@@ -1,3 +1,6 @@
+Utils to tamper with PCM buffers.
+
+
 [![npm install pcm-util](https://nodei.co/npm/pcm-util.png?mini=true)](https://npmjs.org/package/pcm-util/)
 
 
