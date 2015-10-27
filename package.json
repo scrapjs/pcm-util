@@ -1,6 +1,6 @@
 {
   "name": "pcm-util",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Audio PCM utils",
   "main": "index.js",
   "scripts": {
