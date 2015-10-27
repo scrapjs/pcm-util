@@ -89,7 +89,7 @@ function getChannelData (buffer, channel, format) {
  * Get parsed buffer data, separated by channel arrays [[LLLL], [RRRR]]
  */
 function getChannelsData (buffer, format) {
-	normalizeFormat(format);
+	format = normalizeFormat(format);
 
 	var data = [];
 
@@ -150,17 +150,19 @@ function convertFormat (buffer, from, to) {
  * Convert sample from format A to format B
  */
 function convertSample (value, from, to) {
-	normalizeFormat(from);
+	from = normalizeFormat(from);
+	to = normalizeFormat(to);
 
 	//normalize value to float form -1..1
 	if (!from.float) {
 		if (!from.signed) {
 			value -= from.maxInt;
 		}
-		value /= from.maxInt;
+		value = value / (from.maxInt - 1);
 	}
 
-	normalizeFormat(to);
+	//clamp
+	value = Math.max(-1, Math.min(1, value));
 
 	//convert value to needed form
 	if (!to.float) {
@@ -220,6 +222,14 @@ function resample (buffer, rateA, rateB, format) {
  * Remap channels not changing the format
  */
 function mapChannels (buffer, channels, format) {
+	xxx
+};
+
+
+/**
+ * Slice audio buffer
+ */
+function slice (buffer, format) {
 	xxx
 };
 

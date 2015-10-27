@@ -39,6 +39,14 @@ describe('Sample conversions', function () {
 		assert.equal(Math.pow(2, 15) - 1, val1);
 		assert.equal(-Math.pow(2, 14), val2);
 	});
+
+	it('Irrevertibility', function () {
+		assert.equal(util.convertSample(32767), 32767);
+	});
+
+	it('Float align', function () {
+		assert.equal(util.convertSample(2, {float: true}), 32767);
+	});
 });
 
 describe('Map samples', function () {
