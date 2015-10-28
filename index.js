@@ -281,6 +281,7 @@ module.exports = {
 	convertSample: convertSample,
 	normalizeFormat: normalizeFormat,
 	getChannelData: getChannelData,
+	getChannelsData: getChannelsData,
 	copyToChannel: copyToChannel,
 	mapSamples: mapSamples,
 	getFrameLength: getFrameLength

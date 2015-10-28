@@ -87,5 +87,11 @@ describe('Map samples', function () {
 });
 
 describe('Get channel data', function () {
-
+	it('getChannelsData', function () {
+		var buf = new Buffer(8);
+		buf.writeFloatLE(1.0, 0);
+		buf.writeFloatLE(-0.5, 4);
+		var data = util.getChannelsData(buf, {channels: 2, float: true});
+		assert.deepEqual(data, [[1],[-0.5]])
+	});
 });
