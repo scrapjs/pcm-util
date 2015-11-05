@@ -34,11 +34,11 @@ format === {
 
 
 /** Get channel data from the buffer */
-var channelData = pcm.getChannelData(buffer, channel, format?);
+var channelData = pcm.getChannelData(buffer, channel, fromFormat?, toFormat?);
 
 
 /** Get all channels data, [[LLLL...], [RRRR...], ...] */
-var channelsData = pcm.getChannelsData(buffer, format?);
+var channelsData = pcm.getChannelsData(buffer, fromFormat?, toFormat?);
 
 
 /** Copy channel data to buffer */
@@ -46,11 +46,11 @@ pcm.copyToChannel(buffer, data, channel, format?);
 
 
 /** Convert buffer from format A to format B */
-var newBuffer = pcm.convertFormat(buffer, formatA, formatB?);
+var newBuffer = pcm.convertFormat(buffer, fromFormat, toFormat?);
 
 
 /** Convert value from format A to format B */
-var value = pcm.convertSample(value, formatA, formatB?);
+var value = pcm.convertSample(value, fromFormat, toFormat?);
 
 
 /** Return buffer method suffix for the format, e.g. `UInt16LE` */

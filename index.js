@@ -1,3 +1,9 @@
+/**
+ * Utils to deal with pcm-buffers
+ *
+ * @module  pcm-util
+ */
+
 var os = require('os');
 
 
@@ -68,17 +74,22 @@ function normalizeFormat (format) {
 /**
  * Return parsed channel data for a buffer
  */
-function getChannelData (buffer, channel, format) {
-	format = normalizeFormat(format);
+function getChannelData (buffer, channel, fromFormat, toFormat) {
+	fromFormat = normalizeFormat(fromFormat);
 
-	var method = format.readMethodName;
-	var frameLength = getFrameLength(buffer, format);
+	var method = fromFormat.readMethodName;
+	var frameLength = getFrameLength(buffer, fromFormat);
+
 	var data = [];
 	var offset;
 
-	for (var i = 0; i < frameLength; i++) {
-		offset = format.interleaved ? channel + i * format.channels : channel * frameLength + i;
-		data.push(buffer[method](offset * format.sampleSize));
+	for (var i = 0, value; i < frameLength; i++) {
+		offset = fromFormat.interleaved ? channel + i * fromFormat.channels : channel * frameLength + i;
+
+		value = buffer[method](offset * fromFormat.sampleSize);
+		if (toFormat) value = convertSample(value, fromFormat, toFormat);
+
+		data.push(value);
 	}
 
 	return data;
@@ -88,13 +99,13 @@ function getChannelData (buffer, channel, format) {
 /**
  * Get parsed buffer data, separated by channel arrays [[LLLL], [RRRR]]
  */
-function getChannelsData (buffer, format) {
-	format = normalizeFormat(format);
+function getChannelsData (buffer, fromFormat, toFormat) {
+	fromFormat = normalizeFormat(fromFormat);
 
 	var data = [];
 
-	for (var channel = 0; channel < format.channels; channel++) {
-		data.push(getChannelData(buffer, channel, format));
+	for (var channel = 0; channel < fromFormat.channels; channel++) {
+		data.push(getChannelData(buffer, channel, fromFormat, toFormat));
 	}
 
 	return data;
@@ -152,6 +163,9 @@ function convertFormat (buffer, from, to) {
 function convertSample (value, from, to) {
 	from = normalizeFormat(from);
 	to = normalizeFormat(to);
+
+	//ignore not changed suffix
+	if (from.methodSuffix === to.methodSuffix) return value;
 
 	//normalize value to float form -1..1
 	if (!from.float) {
