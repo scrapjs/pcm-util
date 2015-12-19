@@ -30,13 +30,16 @@ defaultFormat.id = stringifyFormat(defaultFormat);
 var formatProperties = Object.keys(defaultFormat);
 
 
-//calculated properties - no need to overdefine them
-// 'sampleSize',
-// 'methodSuffix',
-// 'readMethodName',
-// 'writeMethodName',
-// 'maxInt',
-// 'id'
+/**
+ * Additional properties added during normalization
+ */
+var calculatedProperties = [
+	'sampleSize',
+	'methodSuffix',
+	'readMethodName',
+	'writeMethodName',
+	'maxInt'
+];
 
 
 /**
@@ -126,7 +129,7 @@ function normalizeFormat (format) {
 	if (!format) format = {};
 
 	//ignore already normalized format
-	if (format.id) return format;
+	if (format.sampleSize) return format;
 
 	//bring default format values
 	formatProperties.forEach(function (key) {
