@@ -51,13 +51,15 @@ function getMethodSuffix (format) {
  * Get format info from any object, unnormalized.
  */
 function getFormat (obj) {
-	if (typeof obj === 'string' || (obj && obj.id)) {
+	if (!obj) return {};
+
+	if (typeof obj === 'string' || obj.id) {
 		return parseFormat(obj.id || obj);
 	}
 
 	var format = {};
 
-	obj && formatProperties.forEach(function (key) {
+	formatProperties.forEach(function (key) {
 		if (obj[key] != null) format[key] = obj[key];
 	});
 
