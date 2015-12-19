@@ -68,7 +68,17 @@ function normalizeFormat (format) {
 
 
 	return format;
-}
+};
+
+
+/**
+ * Calculate offset for the format
+ */
+function getOffset(channel, idx, format, len) {
+	if (!len) len = format.samplesPerFrame;
+	var offset = format.interleaved ? channel + idx * format.channels : channel * len + idx;
+	return offset * format.sampleSize;
+};
 
 
 /**
@@ -84,9 +94,7 @@ function getChannelData (buffer, channel, fromFormat, toFormat) {
 	var offset;
 
 	for (var i = 0, value; i < frameLength; i++) {
-		offset = fromFormat.interleaved ? channel + i * fromFormat.channels : channel * frameLength + i;
-
-		value = buffer[method](offset * fromFormat.sampleSize);
+		value = buffer[method](getOffset(channel, i, fromFormat, frameLength));
 		if (toFormat) value = convertSample(value, fromFormat, toFormat);
 
 		data.push(value);
@@ -119,9 +127,9 @@ function copyToChannel (buffer, data, channel, format) {
 	format = normalizeFormat(format);
 
 	data.forEach(function (value, i) {
-		var offset = format.interleaved ? channel + i * format.channels : channel * data.length + i;
+		var offset = getOffset(channel, i, format, data.length)
 		if (!format.float) value = Math.round(value);
-		buffer[format.writeMethodName](value, offset * format.sampleSize);
+		buffer[format.writeMethodName](value, offset);
 	});
 
 	return buffer;
@@ -298,5 +306,6 @@ module.exports = {
 	getChannelsData: getChannelsData,
 	copyToChannel: copyToChannel,
 	mapSamples: mapSamples,
-	getFrameLength: getFrameLength
+	getFrameLength: getFrameLength,
+	getOffset: getOffset
 };

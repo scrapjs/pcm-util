@@ -62,7 +62,11 @@ var newBuffer = pcm.mapSamples(buffer, function (value) { return value/2 }, form
 
 
 /** Get channel frame length, i. e. number of samples per channel */
-pcm.getFrameLength(buffer, format);
+var len = pcm.getFrameLength(buffer, format);
+
+
+/** Get offset in the buffer for the specific format, pass optionally frame length */
+var offset = getOffset(channel, idx, format, length?);
 ```
 
 > **Related**<br/>
