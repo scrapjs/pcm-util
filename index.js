@@ -387,6 +387,7 @@ module.exports = {
 	normalizeFormat: normalizeFormat,
 	stringifyFormat: stringifyFormat,
 	parseFormat: parseFormat,
+	isEqualFormat: isEqualFormat,
 
 	//buffers utils
 	getMethodSuffix: getMethodSuffix,

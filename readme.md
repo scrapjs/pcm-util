@@ -43,7 +43,7 @@ var formatId = pcm.stringifyFormat(format);
 var format = pcm.parseFormat(formatId);
 
 /** Compare whether two formats are equal to each other */
-pcm.isEqualFormats(formatA, formatB);
+pcm.isEqualFormat(formatA, formatB);
 
 
 /** Get channel data from the buffer */
