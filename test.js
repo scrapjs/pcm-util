@@ -1,17 +1,27 @@
 var util = require('./');
 var assert = require('assert');
+var AudioSink = require('audio-sink');
 
 describe('Method suffix', function () {
 
 });
 
-describe('Normalize format', function () {
+describe('Normalize/get format', function () {
 	it('Keep prototype values', function () {
 		var A = function(){};
 		A.prototype = Object.create({samplesPerFrame: 1});
 		var a = new A();
 		util.normalizeFormat(a);
 		assert.equal(a.samplesPerFrame, 1);
+	});
+
+	it('Obtain format from the audio node', function () {
+		var aStream = AudioSink();
+		var aStreamFormat = util.getFormat(aStream);
+		var defaultFormat = util.getFormat(util.defaultFormat);
+
+		assert.notEqual(aStream, aStreamFormat);
+		assert.deepEqual(aStreamFormat, defaultFormat)
 	});
 });
 

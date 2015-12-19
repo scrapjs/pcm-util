@@ -33,6 +33,10 @@ format === {
 };
 
 
+/** Retrieve copied & normalized format info from any object */
+var format = pcm.getFormat(audioNode);
+
+
 /** Get channel data from the buffer */
 var channelData = pcm.getChannelData(buffer, channel, fromFormat?, toFormat?);
 

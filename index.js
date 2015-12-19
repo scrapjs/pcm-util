@@ -23,10 +23,42 @@ var defaultFormat = {
 
 
 /**
+ * Just a list of reserved property names of format
+ */
+var formatProperties = [
+	'channels',
+	'sampleRate',
+	'byteOrder',
+	'bitDepth',
+	'signed',
+	'float',
+	'interleaved',
+	'samplesPerFrame',
+	'sampleSize',
+	'methodSuffix',
+	'readMethodName',
+	'writeMethodName',
+	'maxInt'
+];
+
+
+/**
  * Return buffer method suffix for the format
  */
 function getMethodSuffix (format) {
 	return (format.float ? 'Float' : ((format.signed ? '' : 'U') + 'Int' + format.bitDepth)) + format.byteOrder;
+};
+
+
+/**
+ * Get format info from any object
+ */
+function getFormat (obj) {
+	var format = {};
+	formatProperties.forEach(function (property) {
+		format[property] = obj[property];
+	});
+	return normalizeFormat(format);
 };
 
 
@@ -41,11 +73,11 @@ function normalizeFormat (format) {
 	if (format.sampleSize) return format;
 
 	//bring default format values
-	for (var key in defaultFormat) {
-		if (format[key] === undefined) {
+	formatProperties.forEach(function (key) {
+		if (format[key] == null) {
 			format[key] = defaultFormat[key];
 		}
-	}
+	});
 
 	//ensure float values
 	if (format.float) {
@@ -298,6 +330,7 @@ function getFrameLength (buffer, format) {
 
 module.exports = {
 	defaultFormat: defaultFormat,
+	getFormat: getFormat,
 	getMethodSuffix: getMethodSuffix,
 	convertFormat: convertFormat,
 	convertSample: convertSample,
