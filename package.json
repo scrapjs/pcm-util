@@ -25,6 +25,7 @@
   "homepage": "https://github.com/audio-lab/pcm-util",
   "dependencies": {},
   "devDependencies": {
+    "audio-biquad": "^1.0.2",
     "audio-sink": "^1.0.1",
     "mocha": "^2.3.3"
   }

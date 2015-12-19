@@ -1,11 +1,11 @@
 var util = require('./');
 var assert = require('assert');
-var AudioSink = require('audio-sink');
+var AudioBiquad = require('audio-biquad');
 
 
 describe('Format identifiers', function () {
 	it('Parse', function () {
-		var format = util.getFormat();
+		var format = util.getFormat(util.defaultFormat);
 		var formatId = util.stringifyFormat(format);
 		var result = util.parseFormat(formatId);
 
@@ -27,7 +27,7 @@ describe('Normalize/get format', function () {
 	});
 
 	it('Obtain format from the audio node', function () {
-		var aStream = AudioSink();
+		var aStream = AudioBiquad();
 		var aStreamFormat = util.getFormat(aStream);
 		var defaultFormat = util.getFormat(util.defaultFormat);
 
@@ -35,8 +35,8 @@ describe('Normalize/get format', function () {
 		assert.deepEqual(aStreamFormat, defaultFormat)
 	});
 
-	it('Return default format if none passed', function () {
-		assert(util.getFormat());
+	it('Do not return defaults', function () {
+		assert.deepEqual(util.getFormat(), {});
 	});
 });
 

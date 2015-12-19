@@ -21,6 +21,8 @@ var defaultFormat = {
 	samplesPerFrame: 1024
 };
 
+var defaultFormatId = stringifyFormat(defaultFormat);
+
 
 /**
  * Just a list of reserved property names of format
@@ -46,18 +48,17 @@ function getMethodSuffix (format) {
 
 
 /**
- * Get format info from any object
+ * Get format info from any object, unnormalized.
  */
 function getFormat (obj) {
-
 	if (typeof obj === 'string' || (obj && obj.id)) {
 		return parseFormat(obj.id || obj);
 	}
 
 	var format = {};
 
-	formatProperties.forEach(function (key) {
-		format[key] = obj && obj[key] || defaultFormat[key];
+	obj && formatProperties.forEach(function (key) {
+		if (obj[key] != null) format[key] = obj[key];
 	});
 
 	return format;
