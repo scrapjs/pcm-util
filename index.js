@@ -21,7 +21,7 @@ var defaultFormat = {
 	samplesPerFrame: 1024
 };
 
-defaultFormat.id = stringifyFormat(defaultFormat);
+var defaultFormatId = stringifyFormat(defaultFormat);
 
 
 /**
@@ -34,6 +34,7 @@ var formatProperties = Object.keys(defaultFormat);
  * Additional properties added during normalization
  */
 var calculatedProperties = [
+	'id',
 	'sampleSize',
 	'methodSuffix',
 	'readMethodName',
@@ -107,8 +108,7 @@ function parseFormat (str) {
 		interleaved: params[5] === 'I',
 
 		//TODO: is it important?
-		samplesPerFrame: 1024,
-		id: str
+		samplesPerFrame: 1024
 	};
 }
 
@@ -129,7 +129,7 @@ function normalizeFormat (format) {
 	if (!format) format = {};
 
 	//ignore already normalized format
-	if (format.sampleSize) return format;
+	if (format.id) return format;
 
 	//bring default format values
 	formatProperties.forEach(function (key) {
