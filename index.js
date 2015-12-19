@@ -11,12 +11,12 @@ var os = require('os');
  * Default input/output format
  */
 var defaultFormat = {
-	channels: 2,
-	sampleRate: 44100,
-	byteOrder: os.endianness instanceof Function ? os.endianness() : 'LE',
-	bitDepth: 16,
 	signed: true,
 	float: false,
+	bitDepth: 16,
+	byteOrder: os.endianness instanceof Function ? os.endianness() : 'LE',
+	channels: 2,
+	sampleRate: 44100,
 	interleaved: true,
 	samplesPerFrame: 1024
 };
@@ -25,21 +25,16 @@ var defaultFormat = {
 /**
  * Just a list of reserved property names of format
  */
-var formatProperties = [
-	'channels',
-	'sampleRate',
-	'byteOrder',
-	'bitDepth',
-	'signed',
-	'float',
-	'interleaved',
-	'samplesPerFrame',
-	'sampleSize',
-	'methodSuffix',
-	'readMethodName',
-	'writeMethodName',
-	'maxInt'
-];
+var formatProperties = Object.keys(defaultFormat);
+
+
+//calculated properties - no need to overdefine them
+// 'sampleSize',
+// 'methodSuffix',
+// 'readMethodName',
+// 'writeMethodName',
+// 'maxInt',
+// 'id'
 
 
 /**
@@ -54,23 +49,80 @@ function getMethodSuffix (format) {
  * Get format info from any object
  */
 function getFormat (obj) {
+
+	if (typeof obj === 'string' || (obj && obj.id)) {
+		return parseFormat(obj.id || obj);
+	}
+
 	var format = {};
-	obj && formatProperties.forEach(function (key) {
-		if (obj[key]) format[key] = obj[key];
+
+	formatProperties.forEach(function (key) {
+		format[key] = obj && obj[key] || defaultFormat[key];
 	});
-	return normalizeFormat(format);
+
+	return format;
 };
 
 
 /**
+ * Get format id string.
+ * Inspired by https://github.com/xdissent/node-alsa/blob/master/src/constants.coffee
+ */
+function stringifyFormat (format) {
+	//TODO: extend possible special formats
+	var result = [];
+
+	//(S|U)(8|16|24|32)_(LE|BE)?
+	result.push(format.float ? 'F' : (format.signed ? 'S' : 'U'));
+	result.push(format.bitDepth);
+	result.push(format.byteOrder);
+	result.push(format.channels);
+	result.push(format.sampleRate);
+	result.push(format.interleaved ? 'I' : 'N');
+
+	return result.join('_');
+};
+
+
+/**
+ * Return format object from the format ID.
+ * Returned format is not normalized for performance purposes (~10 times)
+ * http://jsperf.com/parse-vs-extend/4
+ */
+function parseFormat (str) {
+	var params = str.split('_');
+	return {
+		float: params[0] === 'F',
+		signed: params[0] === 'S',
+		bitDepth: parseInt(params[1]),
+		byteOrder: params[2],
+		channels: parseInt(params[3]),
+		sampleRate: parseInt(params[4]),
+		interleaved: params[5] === 'I',
+
+		//TODO: is it important?
+		samplesPerFrame: 1024
+	};
+}
+
+
+/**
+ * Whether one format is equal to another
+ */
+function isEqualFormat (a, b) {
+	return (a.id || stringifyFormat(a)) === (b.id || stringifyFormat(b));
+}
+
+
+/**
  * Normalize format, mutable.
- * Precalculate format params: sampleSize, suffix.
+ * Precalculate format params: sampleSize, methodSuffix, id, maxInt.
  */
 function normalizeFormat (format) {
 	if (!format) format = {};
 
 	//ignore already normalized format
-	if (format.sampleSize) return format;
+	if (format.id) return format;
 
 	//bring default format values
 	formatProperties.forEach(function (key) {
@@ -98,6 +150,8 @@ function normalizeFormat (format) {
 	//max integer, e.g. 32768
 	format.maxInt = Math.pow(2, format.bitDepth-1);
 
+	//calc id
+	format.id = stringifyFormat(format);
 
 	return format;
 };
@@ -171,16 +225,14 @@ function copyToChannel (buffer, data, channel, toFormat) {
 /**
  * Convert buffer from format A to format B.
  */
-function convertFormat (buffer, from, to) {
+function convert (buffer, from, to) {
 	var value, channel, offset;
 
 	from = normalizeFormat(from);
 	to = normalizeFormat(to);
 
 	//ignore needless conversion
-	if ((from.methodSuffix === to.methodSuffix) &&
-		(from.channels === to.channels) &&
-		(from.interleaved === to.interleaved)) {
+	if (isEqualFormat(from ,to)) {
 		return buffer;
 	}
 
@@ -317,7 +369,7 @@ function mapSamples (buffer, fn, format) {
 	}
 
 	return buf;
-}
+};
 
 
 /** Get frame size from the buffer, for a channel */
@@ -325,16 +377,21 @@ function getFrameLength (buffer, format) {
 	format = normalizeFormat(format);
 
 	return Math.floor(buffer.length / format.sampleSize / format.channels);
-}
+};
 
 
 module.exports = {
+	//format utils
 	defaultFormat: defaultFormat,
 	getFormat: getFormat,
-	getMethodSuffix: getMethodSuffix,
-	convertFormat: convertFormat,
-	convertSample: convertSample,
 	normalizeFormat: normalizeFormat,
+	stringifyFormat: stringifyFormat,
+	parseFormat: parseFormat,
+
+	//buffers utils
+	getMethodSuffix: getMethodSuffix,
+	convertFormat: convert,
+	convertSample: convertSample,
 	getChannelData: getChannelData,
 	getChannelsData: getChannelsData,
 	copyToChannel: copyToChannel,

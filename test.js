@@ -2,9 +2,20 @@ var util = require('./');
 var assert = require('assert');
 var AudioSink = require('audio-sink');
 
-describe('Method suffix', function () {
 
+describe('Format identifiers', function () {
+	it('Parse', function () {
+		var format = util.getFormat();
+		var formatId = util.stringifyFormat(format);
+		var result = util.parseFormat(formatId);
+
+		assert.deepEqual(format, result);
+	});
+	it ('Stringify', function () {
+
+	});
 });
+
 
 describe('Normalize/get format', function () {
 	it('Keep prototype values', function () {
@@ -83,15 +94,15 @@ describe('Map samples', function () {
 	it('Int', function () {
 		var buf = new Buffer(16);
 		buf.writeInt16LE(20001, 0);
-		buf.writeInt16LE(-10001, 4);
-		buf.writeInt16LE(32767, 8);
-		buf.writeInt16LE(-32768, 12);
+		buf.writeInt16LE(-10001, 2);
+		buf.writeInt16LE(32767, 4);
+		buf.writeInt16LE(-32768, 6);
 
 		var newBuf = util.mapSamples(buf, function (value) { return -0.5 * value;});
 		var val1 = newBuf.readInt16LE(0);
-		var val2 = newBuf.readInt16LE(4);
-		var val3 = newBuf.readInt16LE(8);
-		var val4 = newBuf.readInt16LE(12);
+		var val2 = newBuf.readInt16LE(2);
+		var val3 = newBuf.readInt16LE(4);
+		var val4 = newBuf.readInt16LE(6);
 
 		assert.equal(-10000, val1);
 		assert.equal(5001, val2);

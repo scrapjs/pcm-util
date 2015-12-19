@@ -9,14 +9,14 @@ var pcm = require('pcm-util');
 
 /** Default PCM format to use for any operations */
 pcm.defaultFormat === {
-	channels: 2,
-	byteOrder: 'LE',
-	bitDepth: 16,
 	signed: true,
 	float: false,
+	bitDepth: 16,
+	byteOrder: 'LE',
+	channels: 2,
 	sampleRate: 44100,
 	interleaved: true,
-	samplesPerFrame: null
+	samplesPerFrame: 1024
 };
 
 
@@ -29,12 +29,21 @@ format === {
 	methodSuffix: 'Int16LE',
 	readMethodName: 'readInt16LE',
 	writeMethodName: 'writeInt16LE',
-	maxInt: 32678
+	maxInt: 32678,
+	id: 'S_16_LE_2_44100_I'
 };
 
 
-/** Retrieve copied & normalized format info from any object */
+/** Retrieve format info from any object, not normalized */
 var format = pcm.getFormat(audioNode);
+
+
+/** Stringify/parse format identifier */
+var formatId = pcm.stringifyFormat(format);
+var format = pcm.parseFormat(formatId);
+
+/** Compare whether two formats are equal to each other */
+pcm.isEqualFormats(formatA, formatB);
 
 
 /** Get channel data from the buffer */
