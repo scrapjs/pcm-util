@@ -21,7 +21,7 @@ var defaultFormat = {
 	samplesPerFrame: 1024
 };
 
-var defaultFormatId = stringifyFormat(defaultFormat);
+defaultFormat.id = stringifyFormat(defaultFormat);
 
 
 /**
@@ -104,7 +104,8 @@ function parseFormat (str) {
 		interleaved: params[5] === 'I',
 
 		//TODO: is it important?
-		samplesPerFrame: 1024
+		samplesPerFrame: 1024,
+		id: str
 	};
 }
 
