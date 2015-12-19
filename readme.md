@@ -20,11 +20,12 @@ pcm.defaultFormat === {
 };
 
 
-/** Normalize passed format or return default format */
+/** Normalize passed format - align values and precalculate params */
 var format = pcm.normalizeFormat(format);
 format === {
-	//...
-	//all the default format params plus precalculated params:
+	//...all the default values
+
+	//precalculated params:
 	sampleSize: 4,
 	methodSuffix: 'Int16LE',
 	readMethodName: 'readInt16LE',
@@ -34,13 +35,14 @@ format === {
 };
 
 
-/** Retrieve format info from any object, not normalized */
+/** Retrieve format from any object, returns not normalized object */
 var format = pcm.getFormat(audioNode);
 
 
 /** Stringify/parse format identifier */
 var formatId = pcm.stringifyFormat(format);
 var format = pcm.parseFormat(formatId);
+
 
 /** Compare whether two formats are equal to each other */
 pcm.isEqualFormat(formatA, formatB);
