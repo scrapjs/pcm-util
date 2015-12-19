@@ -41,7 +41,7 @@ var format = pcm.getFormat(audioNode);
 var channelData = pcm.getChannelData(buffer, channel, fromFormat?, toFormat?);
 
 
-/** Get all channels data, [[LLLL...], [RRRR...], ...] */
+/** Get all channels data, in form: [[LLLL...], [RRRR...], ...] */
 var channelsData = pcm.getChannelsData(buffer, fromFormat?, toFormat?);
 
 

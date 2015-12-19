@@ -55,8 +55,8 @@ function getMethodSuffix (format) {
  */
 function getFormat (obj) {
 	var format = {};
-	formatProperties.forEach(function (property) {
-		format[property] = obj[property];
+	obj && formatProperties.forEach(function (key) {
+		if (obj[key]) format[key] = obj[key];
 	});
 	return normalizeFormat(format);
 };
@@ -155,13 +155,13 @@ function getChannelsData (buffer, fromFormat, toFormat) {
 /**
  * Copy data to the buffer’s channel
  */
-function copyToChannel (buffer, data, channel, format) {
-	format = normalizeFormat(format);
+function copyToChannel (buffer, data, channel, toFormat) {
+	toFormat = normalizeFormat(toFormat);
 
 	data.forEach(function (value, i) {
-		var offset = getOffset(channel, i, format, data.length)
-		if (!format.float) value = Math.round(value);
-		buffer[format.writeMethodName](value, offset);
+		var offset = getOffset(channel, i, toFormat, data.length)
+		if (!toFormat.float) value = Math.round(value);
+		buffer[toFormat.writeMethodName](value, offset);
 	});
 
 	return buffer;

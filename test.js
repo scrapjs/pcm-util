@@ -23,6 +23,10 @@ describe('Normalize/get format', function () {
 		assert.notEqual(aStream, aStreamFormat);
 		assert.deepEqual(aStreamFormat, defaultFormat)
 	});
+
+	it('Return default format if none passed', function () {
+		assert(util.getFormat());
+	});
 });
 
 describe('Frame length', function () {
