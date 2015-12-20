@@ -38,6 +38,14 @@ describe('Normalize/get format', function () {
 	it('Do not return defaults', function () {
 		assert.deepEqual(util.getFormat(), {});
 	});
+
+	it('Normalize changed and normalized', function () {
+		var floatFormat = util.normalizeFormat(util.getFormat(util.defaultFormat));
+		floatFormat.float = true;
+		var floatFormat = util.normalizeFormat(floatFormat);
+
+		assert.deepEqual(util.normalizeFormat({float: true}), floatFormat);
+	});
 });
 
 describe('Frame length', function () {

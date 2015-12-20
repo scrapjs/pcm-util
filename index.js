@@ -128,9 +128,6 @@ function isEqualFormat (a, b) {
 function normalizeFormat (format) {
 	if (!format) format = {};
 
-	//ignore already normalized format
-	if (format.id) return format;
-
 	//bring default format values
 	formatProperties.forEach(function (key) {
 		if (format[key] == null) {
@@ -165,6 +162,14 @@ function normalizeFormat (format) {
 
 
 /**
+ * Check whether format is normalized, at least once
+ */
+function isNormalized (format) {
+	return format && format.id;
+}
+
+
+/**
  * Calculate offset for the format
  */
 function getOffset(channel, idx, format, len) {
@@ -178,7 +183,7 @@ function getOffset(channel, idx, format, len) {
  * Return parsed channel data for a buffer
  */
 function getChannelData (buffer, channel, fromFormat, toFormat) {
-	fromFormat = normalizeFormat(fromFormat);
+	if (!isNormalized(fromFormat)) fromFormat = normalizeFormat(fromFormat);
 
 	var method = fromFormat.readMethodName;
 	var frameLength = getFrameLength(buffer, fromFormat);
@@ -201,7 +206,7 @@ function getChannelData (buffer, channel, fromFormat, toFormat) {
  * Get parsed buffer data, separated by channel arrays [[LLLL], [RRRR]]
  */
 function getChannelsData (buffer, fromFormat, toFormat) {
-	fromFormat = normalizeFormat(fromFormat);
+	if (!isNormalized(fromFormat)) fromFormat = normalizeFormat(fromFormat);
 
 	var data = [];
 
@@ -217,7 +222,7 @@ function getChannelsData (buffer, fromFormat, toFormat) {
  * Copy data to the buffer’s channel
  */
 function copyToChannel (buffer, data, channel, toFormat) {
-	toFormat = normalizeFormat(toFormat);
+	if (!isNormalized(toFormat)) toFormat = normalizeFormat(toFormat);
 
 	data.forEach(function (value, i) {
 		var offset = getOffset(channel, i, toFormat, data.length)
@@ -235,8 +240,8 @@ function copyToChannel (buffer, data, channel, toFormat) {
 function convert (buffer, from, to) {
 	var value, channel, offset;
 
-	from = normalizeFormat(from);
-	to = normalizeFormat(to);
+	if (!isNormalized(from)) from = normalizeFormat(from);
+	if (!isNormalized(to)) to = normalizeFormat(to);
 
 	//ignore needless conversion
 	if (isEqualFormat(from ,to)) {
@@ -260,8 +265,8 @@ function convert (buffer, from, to) {
  * Convert sample from format A to format B
  */
 function convertSample (value, from, to) {
-	from = normalizeFormat(from);
-	to = normalizeFormat(to);
+	if (!isNormalized(from)) from = normalizeFormat(from);
+	if (!isNormalized(to)) to = normalizeFormat(to);
 
 	//ignore not changed suffix
 	if (from.methodSuffix === to.methodSuffix) return value;
@@ -351,7 +356,7 @@ function slice (buffer, format) {
  * Map samples not changing the format
  */
 function mapSamples (buffer, fn, format) {
-	format = normalizeFormat(format);
+	if (!isNormalized(format)) format = normalizeFormat(format);
 
 	var samplesNumber = Math.floor(buffer.length / format.sampleSize);
 	var value, offset;
@@ -381,7 +386,7 @@ function mapSamples (buffer, fn, format) {
 
 /** Get frame size from the buffer, for a channel */
 function getFrameLength (buffer, format) {
-	format = normalizeFormat(format);
+	if (!isNormalized(format)) format = normalizeFormat(format);
 
 	return Math.floor(buffer.length / format.sampleSize / format.channels);
 };
@@ -395,6 +400,7 @@ module.exports = {
 	stringifyFormat: stringifyFormat,
 	parseFormat: parseFormat,
 	isEqualFormat: isEqualFormat,
+	isNormalized: isNormalized,
 
 	//buffers utils
 	getMethodSuffix: getMethodSuffix,

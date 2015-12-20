@@ -35,6 +35,10 @@ format === {
 };
 
 
+/** Whether format is normalized, at least once */
+pcm.isNormalized(format);
+
+
 /** Retrieve format from any object, returns not normalized object */
 var format = pcm.getFormat(audioNode);
 
