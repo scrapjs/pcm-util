@@ -1,3 +1,5 @@
+* Add dataView method suffixes
+* Remove methodSuffix from normalized format
 * Remove all buffer-related methods - replaceable with audio-buffer
 * isValid(format), isValid(format, property)
 * return typed arrays in reading the data

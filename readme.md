@@ -55,6 +55,9 @@ pcm.isEqualFormat(formatA, formatB);
 /** Create typed array of a type, according to the format */
 var array = pcm.createArray(format);
 
+/** Ger format from typed array */
+var format = pcm.getArrayFormat(new Float32Array);
+
 
 /** Get channel data from the buffer */
 var channelData = pcm.getChannelData(buffer, channel, fromFormat?, toFormat?);

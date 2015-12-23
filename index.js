@@ -57,10 +57,17 @@ function getMethodSuffix (format) {
 function getFormat (obj) {
 	if (!obj) return {};
 
+	//if is string - parse format
 	if (typeof obj === 'string' || obj.id) {
 		return parseFormat(obj.id || obj);
 	}
 
+	//if is array - detect format
+	else if (ArrayBuffer.isView && ArrayBuffer.isView(obj) || obj.buffer instanceof ArrayBuffer) {
+		return getArrayFormat(obj);
+	}
+
+	//else retrieve format properties from object
 	var format = {};
 
 	formatProperties.forEach(function (key) {
@@ -124,6 +131,7 @@ function isEqualFormat (a, b) {
 /**
  * Normalize format, mutable.
  * Precalculate format params: sampleSize, methodSuffix, id, maxInt.
+ * Fill absent params.
  */
 function normalizeFormat (format) {
 	if (!format) format = {};
@@ -144,9 +152,11 @@ function normalizeFormat (format) {
 	if(format.bitDepth <= 8) format.byteOrder = '';
 
 	//precalc other things
+	//NOTE: same as TypedArray.BYTES_PER_ELEMENT
 	format.sampleSize = format.bitDepth / 8;
 
 	//method suffix/names
+	//FIXME: remove this, in 2.0
 	format.methodSuffix = getMethodSuffix(format);
 	format.readMethodName = 'read' + getMethodSuffix(format);
 	format.writeMethodName = 'write' + getMethodSuffix(format);
@@ -198,6 +208,69 @@ function createArray (format, data) {
 		}
 	}
 };
+
+
+/**
+ * Get format info from the array type
+ */
+function getArrayFormat (array) {
+	if (array instanceof Int8Array) {
+		return {
+			float: false,
+			signed: true,
+			bitDepth: 8
+		};
+	};
+	if ((array instanceof Uint8Array) || (array instanceof Uint8ClampedArray)) {
+		return {
+			float: false,
+			signed: false,
+			bitDepth: 8
+		};
+	};
+	if (array instanceof Int16Array) {
+		return {
+			float: false,
+			signed: true,
+			bitDepth: 16
+		};
+	};
+	if (array instanceof Uint16Array) {
+		return {
+			float: false,
+			signed: false,
+			bitDepth: 16
+		};
+	};
+	if (array instanceof Int32Array) {
+		return {
+			float: false,
+			signed: true,
+			bitDepth: 32
+		};
+	};
+	if (array instanceof Uint32Array) {
+		return {
+			float: false,
+			signed: false,
+			bitDepth: 32
+		};
+	};
+	if (array instanceof Float32Array) {
+		return {
+			float: true,
+			signed: false,
+			bitDepth: 32
+		};
+	};
+	if (array instanceof Float64Array) {
+		return {
+			float: true,
+			signed: false,
+			bitDepth: 64
+		};
+	};
+}
 
 
 /**
