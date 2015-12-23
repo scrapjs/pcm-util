@@ -1,5 +1,4 @@
-* Think up format ID string format
-* isEqual(formatA, formatB)
+* Remove all buffer-related methods - replaceable with audio-buffer
 * isValid(format), isValid(format, property)
 * return typed arrays in reading the data
 * add time to start, to accord with array.slice

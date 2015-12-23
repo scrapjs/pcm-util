@@ -8,7 +8,7 @@ var os = require('os');
 
 
 /**
- * Default input/output format
+ * Default pcm format values
  */
 var defaultFormat = {
 	signed: true,
@@ -167,6 +167,36 @@ function normalizeFormat (format) {
 function isNormalized (format) {
 	return format && format.id;
 }
+
+
+/**
+ * Create typed array for the format, filling with the data (ArrayBuffer)
+ */
+function createArray (format, data) {
+	if (!isNormalized(format)) normalizeFormat(format);
+
+	if (data == null) data = format.samplesPerFrame * format.channels;
+
+	if (format.float) {
+		if (format.bitDepth <= 32) {
+			return new Float32Array(data);
+		}
+		else {
+			return new Float64Array(data);
+		}
+	}
+	else {
+		if (format.bitDepth >=32) {
+			return format.signed ? new Int32Array(data) : new Uint32Array(data);
+		}
+		else if (format.bitDepth >= 16) {
+			return format.signed ? new Int16Array(data) : new Uint16Array(data);
+		}
+		else {
+			return format.signed ? new Int8Array(data) : new Uint8Array(data);
+		}
+	}
+};
 
 
 /**
@@ -401,6 +431,7 @@ module.exports = {
 	parseFormat: parseFormat,
 	isEqualFormat: isEqualFormat,
 	isNormalized: isNormalized,
+	createArray: createArray,
 
 	//buffers utils
 	getMethodSuffix: getMethodSuffix,

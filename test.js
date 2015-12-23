@@ -3,7 +3,7 @@ var assert = require('assert');
 var AudioBiquad = require('audio-biquad');
 
 
-describe('Format identifiers', function () {
+describe('Formats', function () {
 	it('Parse', function () {
 		var format = util.getFormat(util.defaultFormat);
 		var formatId = util.stringifyFormat(format);
@@ -14,10 +14,7 @@ describe('Format identifiers', function () {
 	it ('Stringify', function () {
 
 	});
-});
 
-
-describe('Normalize/get format', function () {
 	it('Keep prototype values', function () {
 		var A = function(){};
 		A.prototype = Object.create({samplesPerFrame: 1});
@@ -46,7 +43,16 @@ describe('Normalize/get format', function () {
 
 		assert.deepEqual(util.normalizeFormat({float: true}), floatFormat);
 	});
+
+	it('Create data storage for the format', function () {
+		assert(util.createArray({float: true}) instanceof Float32Array);
+		assert(util.createArray({float: false}) instanceof Int16Array);
+		assert(util.createArray({float: false, bitDepth: 32}) instanceof Int32Array);
+		// assert(util.createArray({float: false, bitDepth: 32, signed: false}) instanceof UInt32Array);
+		assert(util.createArray({float: false, signed: false}) instanceof Uint16Array);
+	});
 });
+
 
 describe('Frame length', function () {
 	it('Float', function () {
