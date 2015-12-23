@@ -45,6 +45,7 @@ describe('Formats', function () {
 	});
 
 	it('Create data storage for the format', function () {
+		assert(util.createArray() instanceof Int16Array);
 		assert(util.createArray({float: true}) instanceof Float32Array);
 		assert(util.createArray({float: false}) instanceof Int16Array);
 		assert(util.createArray({float: false, bitDepth: 32}) instanceof Int32Array);

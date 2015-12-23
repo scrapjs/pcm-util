@@ -52,6 +52,10 @@ var format = pcm.parseFormat(formatId);
 pcm.isEqualFormat(formatA, formatB);
 
 
+/** Create typed array of a type, according to the format */
+var array = pcm.createArray(format);
+
+
 /** Get channel data from the buffer */
 var channelData = pcm.getChannelData(buffer, channel, fromFormat?, toFormat?);
 

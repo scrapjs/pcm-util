@@ -173,27 +173,28 @@ function isNormalized (format) {
  * Create typed array for the format, filling with the data (ArrayBuffer)
  */
 function createArray (format, data) {
-	if (!isNormalized(format)) normalizeFormat(format);
+	if (!isNormalized(format)) format = normalizeFormat(format);
 
 	if (data == null) data = format.samplesPerFrame * format.channels;
 
 	if (format.float) {
-		if (format.bitDepth <= 32) {
-			return new Float32Array(data);
+		if (format.bitDepth > 32) {
+			return new Float64Array(data);
 		}
 		else {
-			return new Float64Array(data);
+			return new Float32Array(data);
 		}
 	}
 	else {
-		if (format.bitDepth >=32) {
+		if (format.bitDepth === 32) {
 			return format.signed ? new Int32Array(data) : new Uint32Array(data);
 		}
-		else if (format.bitDepth >= 16) {
-			return format.signed ? new Int16Array(data) : new Uint16Array(data);
-		}
-		else {
+		else if (format.bitDepth === 8) {
 			return format.signed ? new Int8Array(data) : new Uint8Array(data);
+		}
+		//default case
+		else {
+			return format.signed ? new Int16Array(data) : new Uint16Array(data);
 		}
 	}
 };
