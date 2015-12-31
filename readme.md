@@ -50,14 +50,13 @@ pcm.toBuffer(audioBuffer, format);
 
 /**
  * Convert buffer from one format to another.
- * Does interleaving/deinterleaving, converting data type.
- * TODO: resampling, up/downmixing, zero-padding for `samplesPerFrame` property
  */
 pcm.convert(buffer, fromFormat, toFormat);
 ```
 
 
-> **Related**<br/>
+### Related
+
 > [audio-buffer](https://npmjs.org/package/audio-buffer) — high-level audio data container.<br/>
 > [audio-buffer-utils](https://npmjs.org/package/audio-buffer-utils) — utils for audio buffers.<br/>
 > [audio-pcm-format](https://npmjs.org/package/audio-pcm-format) — pcm format converter stream.<br/>
