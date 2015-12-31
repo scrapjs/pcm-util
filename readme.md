@@ -10,18 +10,18 @@ var pcm = require('pcm-util');
 
 /** Default PCM format to use for any operations */
 pcm.defaults === {
-	signed: true,
-	float: false,
-	bitDepth: 16,
-	byteOrder: 'LE',
-	sampleSize: 4,
 	channels: 2,
 	sampleRate: 44100,
 	interleaved: true,
+	float: false,
+	signed: true,
+	bitDepth: 16,
+	byteOrder: 'LE',
+	max: 32767,
+	min: -32768,
+	sampleSize: 4,
 	samplesPerFrame: 1024,
-	id: 'S_16_LE_2_44100_I',
-	max: 32678,
-	min: -32768
+	id: 'S_16_LE_2_44100_I'
 };
 
 
