@@ -2,7 +2,7 @@ var pcm = require('./');
 var assert = require('assert');
 var AudioBiquad = require('audio-biquad');
 var AudioBuffer = require('audio-buffer');
-var test = it;
+var test = require('tst');
 
 
 test('Max/min limits', function () {
@@ -45,13 +45,13 @@ test('Max/min limits', function () {
 	assert.equal(a.min, -1);
 });
 
-test.skip('Parse/stringify', function () {
-	var format = pcm.format(pcm.defaults);
-	var formatId = pcm.stringifyFormat(format);
-	var result = pcm.parseFormat(formatId);
+// test.skip('Parse/stringify', function () {
+// 	var format = pcm.format(pcm.defaults);
+// 	var formatId = pcm.stringifyFormat(format);
+// 	var result = pcm.parseFormat(formatId);
 
-	assert.deepEqual(format, result);
-});
+// 	assert.deepEqual(format, result);
+// });
 
 test('Keep prototype values', function () {
 	var A = function(){};
@@ -82,14 +82,14 @@ test('Normalize changed and normalized', function () {
 	assert.deepEqual(pcm.normalize({float: true}), floatFormat);
 });
 
-test.skip('Create typed array for the format', function () {
-	assert(pcm.createArray() instanceof Int16Array);
-	assert(pcm.createArray({float: true}) instanceof Float32Array);
-	assert(pcm.createArray({float: false}) instanceof Int16Array);
-	assert(pcm.createArray({float: false, bitDepth: 32}) instanceof Int32Array);
-	// assert(pcm.createArray({float: false, bitDepth: 32, signed: false}) instanceof UInt32Array);
-	assert(pcm.createArray({float: false, signed: false}) instanceof Uint16Array);
-});
+// test.skip('Create typed array for the format', function () {
+// 	assert(pcm.createArray() instanceof Int16Array);
+// 	assert(pcm.createArray({float: true}) instanceof Float32Array);
+// 	assert(pcm.createArray({float: false}) instanceof Int16Array);
+// 	assert(pcm.createArray({float: false, bitDepth: 32}) instanceof Int32Array);
+// 	// assert(pcm.createArray({float: false, bitDepth: 32, signed: false}) instanceof UInt32Array);
+// 	assert(pcm.createArray({float: false, signed: false}) instanceof Uint16Array);
+// });
 
 test('Infer format from the typed array', function () {
 	assert.deepEqual(pcm.format(new Float32Array), pcm.format({
@@ -117,13 +117,13 @@ test('FloatLE → Int16BE', function () {
 	assert.equal(-Math.pow(2, 14), val2);
 });
 
-test.skip('interleave', function () {
+// test.skip('interleave', function () {
 
-});
+// });
 
-test.skip('deinterleave', function () {
+// test.skip('deinterleave', function () {
 
-});
+// });
 
 test('Buffer to AudioBuffer', function () {
 	var b = Buffer(6*4);
