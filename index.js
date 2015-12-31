@@ -1,10 +1,13 @@
 /**
- * Utils to deal with pcm-buffers
- *
  * @module  pcm-util
  */
 
+var toArrayBuffer = require('to-array-buffer');
+var isBuffer = require('is-buffer');
+var AudioBuffer = require('audio-buffer');
 var os = require('os');
+var isAudioBuffer = require('is-audio-buffer');
+
 
 
 /**
@@ -18,10 +21,12 @@ var defaultFormat = {
 	channels: 2,
 	sampleRate: 44100,
 	interleaved: true,
-	samplesPerFrame: 1024
+	samplesPerFrame: 1024,
+	sampleSize: 2,
+	id: 'S_16_LE_2_44100_I',
+	max: 32678,
+	min: -32768
 };
-
-var defaultFormatId = stringifyFormat(defaultFormat);
 
 
 /**
@@ -30,51 +35,44 @@ var defaultFormatId = stringifyFormat(defaultFormat);
 var formatProperties = Object.keys(defaultFormat);
 
 
-/**
- * Additional properties added during normalization
- */
-var calculatedProperties = [
-	'id',
-	'sampleSize',
-	'methodSuffix',
-	'readMethodName',
-	'writeMethodName',
-	'maxInt'
-];
-
-
-/**
- * Return buffer method suffix for the format
- */
-function getMethodSuffix (format) {
-	return (format.float ? 'Float' : ((format.signed ? '' : 'U') + 'Int' + format.bitDepth)) + format.byteOrder;
-};
+/** Correct default format values */
+normalize(defaultFormat);
 
 
 /**
  * Get format info from any object, unnormalized.
  */
 function getFormat (obj) {
+	//undefined format - no format-related props, for sure
 	if (!obj) return {};
 
 	//if is string - parse format
 	if (typeof obj === 'string' || obj.id) {
-		return parseFormat(obj.id || obj);
+		return parse(obj.id || obj);
+	}
+
+	//if audio buffer - we know it’s format
+	else if (isAudioBuffer(obj)) {
+		return {
+			sampleRate: obj.sampleRate,
+			channels: obj.numberOfChannels,
+			samplesPerFrame: obj.length,
+			float: true,
+			signed: true,
+			bitDepth: 32,
+			sampleSize: 4
+		}
 	}
 
 	//if is array - detect format
-	else if (ArrayBuffer.isView && ArrayBuffer.isView(obj) || obj.buffer instanceof ArrayBuffer) {
-		return getArrayFormat(obj);
+	else if (ArrayBuffer.isView(obj)) {
+		return fromTypedArray(obj);
 	}
 
-	//else retrieve format properties from object
-	var format = {};
+	//FIXME: add AudioNode, stream detection
 
-	formatProperties.forEach(function (key) {
-		if (obj[key] != null) format[key] = obj[key];
-	});
-
-	return format;
+	//else detect from obhect
+	return fromObject(obj);
 };
 
 
@@ -82,7 +80,7 @@ function getFormat (obj) {
  * Get format id string.
  * Inspired by https://github.com/xdissent/node-alsa/blob/master/src/constants.coffee
  */
-function stringifyFormat (format) {
+function stringify (format) {
 	//TODO: extend possible special formats
 	var result = [];
 
@@ -103,7 +101,7 @@ function stringifyFormat (format) {
  * Returned format is not normalized for performance purposes (~10 times)
  * http://jsperf.com/parse-vs-extend/4
  */
-function parseFormat (str) {
+function parse (str) {
 	var params = str.split('_');
 	return {
 		float: params[0] === 'F',
@@ -112,10 +110,7 @@ function parseFormat (str) {
 		byteOrder: params[2],
 		channels: parseInt(params[3]),
 		sampleRate: parseInt(params[4]),
-		interleaved: params[5] === 'I',
-
-		//TODO: is it important?
-		samplesPerFrame: 1024
+		interleaved: params[5] === 'I'
 	};
 }
 
@@ -123,8 +118,8 @@ function parseFormat (str) {
 /**
  * Whether one format is equal to another
  */
-function isEqualFormat (a, b) {
-	return (a.id || stringifyFormat(a)) === (b.id || stringifyFormat(b));
+function equal (a, b) {
+	return (a.id || stringify(a)) === (b.id || stringify(b));
 }
 
 
@@ -133,10 +128,10 @@ function isEqualFormat (a, b) {
  * Precalculate format params: sampleSize, methodSuffix, id, maxInt.
  * Fill absent params.
  */
-function normalizeFormat (format) {
+function normalize (format) {
 	if (!format) format = {};
 
-	//bring default format values
+	//bring default format values, if not present
 	formatProperties.forEach(function (key) {
 		if (format[key] == null) {
 			format[key] = defaultFormat[key];
@@ -145,27 +140,32 @@ function normalizeFormat (format) {
 
 	//ensure float values
 	if (format.float) {
-		format.bitDepth = 32;
+		if (format.bitDepth != 64) format.bitDepth = 32;
 		format.signed = true;
 	}
 
-	if(format.bitDepth <= 8) format.byteOrder = '';
+	//for words byte length does not matter
+	else if (format.bitDepth <= 8) format.byteOrder = '';
 
-	//precalc other things
 	//NOTE: same as TypedArray.BYTES_PER_ELEMENT
 	format.sampleSize = format.bitDepth / 8;
 
-	//method suffix/names
-	//FIXME: remove this, in 2.0
-	format.methodSuffix = getMethodSuffix(format);
-	format.readMethodName = 'read' + getMethodSuffix(format);
-	format.writeMethodName = 'write' + getMethodSuffix(format);
-
-	//max integer, e.g. 32768
-	format.maxInt = Math.pow(2, format.bitDepth-1);
+	//max/min values
+	if (format.float) {
+		format.min = -1;
+		format.max = 1;
+	}
+	else {
+		format.max = Math.pow(2, format.bitDepth) - 1;
+		format.min = 0;
+		if (format.signed) {
+			format.min -= Math.ceil(format.max * 0.5);
+			format.max -= Math.ceil(format.max * 0.5);
+		}
+	}
 
 	//calc id
-	format.id = stringifyFormat(format);
+	format.id = stringify(format);
 
 	return format;
 };
@@ -182,29 +182,27 @@ function isNormalized (format) {
 /**
  * Create typed array for the format, filling with the data (ArrayBuffer)
  */
-function createArray (format, data) {
-	if (!isNormalized(format)) format = normalizeFormat(format);
-
-	if (data == null) data = format.samplesPerFrame * format.channels;
+function arrayClass (format) {
+	if (!isNormalized(format)) format = normalize(format);
 
 	if (format.float) {
 		if (format.bitDepth > 32) {
-			return new Float64Array(data);
+			return Float64Array;
 		}
 		else {
-			return new Float32Array(data);
+			return Float32Array;
 		}
 	}
 	else {
 		if (format.bitDepth === 32) {
-			return format.signed ? new Int32Array(data) : new Uint32Array(data);
+			return format.signed ? Int32Array : Uint32Array;
 		}
 		else if (format.bitDepth === 8) {
-			return format.signed ? new Int8Array(data) : new Uint8Array(data);
+			return format.signed ? Int8Array : Uint8Array;
 		}
 		//default case
 		else {
-			return format.signed ? new Int16Array(data) : new Uint16Array(data);
+			return format.signed ? Int16Array : Uint16Array;
 		}
 	}
 };
@@ -213,7 +211,7 @@ function createArray (format, data) {
 /**
  * Get format info from the array type
  */
-function getArrayFormat (array) {
+function fromTypedArray (array) {
 	if (array instanceof Int8Array) {
 		return {
 			float: false,
@@ -270,71 +268,65 @@ function getArrayFormat (array) {
 			bitDepth: 64
 		};
 	};
-}
 
-
-/**
- * Calculate offset for the format
- */
-function getOffset(channel, idx, format, len) {
-	if (!len) len = format.samplesPerFrame;
-	var offset = format.interleaved ? channel + idx * format.channels : channel * len + idx;
-	return offset * format.sampleSize;
+	//other dataview types are Uint8Arrays
+	return {
+		float: false,
+		signed: false,
+		bitDepth: 8
+	};
 };
 
 
 /**
- * Return parsed channel data for a buffer
+ * Retrieve format info from object
  */
-function getChannelData (buffer, channel, fromFormat, toFormat) {
-	if (!isNormalized(fromFormat)) fromFormat = normalizeFormat(fromFormat);
+function fromObject (obj) {
+	//else retrieve format properties from object
+	var format = {};
 
-	var method = fromFormat.readMethodName;
-	var frameLength = getFrameLength(buffer, fromFormat);
-
-	var data = [];
-	var offset;
-
-	for (var i = 0, value; i < frameLength; i++) {
-		value = buffer[method](getOffset(channel, i, fromFormat, frameLength));
-		if (toFormat) value = convertSample(value, fromFormat, toFormat);
-
-		data.push(value);
-	}
-
-	return data;
-};
-
-
-/**
- * Get parsed buffer data, separated by channel arrays [[LLLL], [RRRR]]
- */
-function getChannelsData (buffer, fromFormat, toFormat) {
-	if (!isNormalized(fromFormat)) fromFormat = normalizeFormat(fromFormat);
-
-	var data = [];
-
-	for (var channel = 0; channel < fromFormat.channels; channel++) {
-		data.push(getChannelData(buffer, channel, fromFormat, toFormat));
-	}
-
-	return data;
-}
-
-
-/**
- * Copy data to the buffer’s channel
- */
-function copyToChannel (buffer, data, channel, toFormat) {
-	if (!isNormalized(toFormat)) toFormat = normalizeFormat(toFormat);
-
-	data.forEach(function (value, i) {
-		var offset = getOffset(channel, i, toFormat, data.length)
-		if (!toFormat.float) value = Math.round(value);
-		buffer[toFormat.writeMethodName](value, offset);
+	formatProperties.forEach(function (key) {
+		if (obj[key] != null) format[key] = obj[key];
 	});
 
+	//some AudioNode/etc-specific options
+	if (obj.channelCount != null) {
+		format.channels = obj.channelCount;
+	}
+
+	return format;
+}
+
+
+/** Convert AudioBuffer to Buffer with specified format */
+function toBuffer (audioBuffer, format) {
+	if (!isNormalized(format)) format = normalize(format);
+
+	var data = toArrayBuffer(audioBuffer);
+
+	var buffer = convert(data, {
+		float: true,
+		channels: audioBuffer.numberOfChannels,
+		sampleRate: audioBuffer.sampleRate,
+		interleaved: false
+	}, format);
+
 	return buffer;
+};
+
+
+/** Convert Buffer to AudioBuffer with specified format */
+function toAudioBuffer (buffer, format) {
+	if (!isNormalized(format)) format = normalize(format);
+
+	buffer = convert(buffer, format, {
+		channels: format.channels,
+		sampleRate: format.sampleRate,
+		interleaved: false,
+		float: true
+	});
+
+	return new AudioBuffer(format.channels, buffer, format.sampleRate);
 };
 
 
@@ -344,177 +336,96 @@ function copyToChannel (buffer, data, channel, toFormat) {
 function convert (buffer, from, to) {
 	var value, channel, offset;
 
-	if (!isNormalized(from)) from = normalizeFormat(from);
-	if (!isNormalized(to)) to = normalizeFormat(to);
+	//ensure formats are full
+	if (!isNormalized(from)) from = normalize(from);
+	if (!isNormalized(to)) to = normalize(to);
 
 	//ignore needless conversion
-	if (isEqualFormat(from ,to)) {
+	if (equal(from ,to)) {
 		return buffer;
 	}
 
-	var chunk = new Buffer(buffer.length * to.sampleSize / from.sampleSize);
+	//convert buffer to arrayBuffer
+	var data = toArrayBuffer(buffer);
 
-	//get normalized data for channels
-	getChannelsData(buffer, from).forEach(function (channelData, channel) {
-		copyToChannel(chunk, channelData.map(function (value) {
-			return convertSample(value, from, to);
-		}), channel, to);
-	});
+	//create containers for conversion
+	var fromArray = new (arrayClass(from))(data);
 
-	return chunk;
-};
+	//toArray is automatically filled with mapped values
+	//but in some cases mapped badly, e. g. float → int(round + rotate)
+	var toArray = new (arrayClass(to))(fromArray);
 
+	//if range differ, we should apply more thoughtful mapping
+	if (from.max !== to.max) {
+		fromArray.forEach(function (value, idx) {
+			//ignore not changed range
+			//bring to 0..1
+			var normalValue = (value - from.min) / (from.max - from.min);
 
-/**
- * Convert sample from format A to format B
- */
-function convertSample (value, from, to) {
-	if (!isNormalized(from)) from = normalizeFormat(from);
-	if (!isNormalized(to)) to = normalizeFormat(to);
+			//bring to new format ranges
+			value = normalValue * (to.max - to.min) + to.min;
 
-	//ignore not changed suffix
-	if (from.methodSuffix === to.methodSuffix) return value;
+			//clamp (buffers does not like values outside of bounds)
+			toArray[idx] = Math.max(to.min, Math.min(to.max, value));
+		});
+	}
 
-	//normalize value to float form -1..1
-	if (!from.float) {
-		if (!from.signed) {
-			value -= from.maxInt;
+	//reinterleave, if required
+	if (from.interleaved != to.interleaved) {
+		var channels = from.channels;
+		var len = Math.floor(fromArray.length / channels);
+
+		//deinterleave
+		if (from.interleaved && !to.interleaved) {
+			toArray = toArray.map(function (value, idx, data) {
+				var targetOffset = idx % len;
+				var targetChannel = ~~(idx / len);
+
+				return data[targetOffset * channels + targetChannel];
+			});
 		}
-		value = value / (from.maxInt - 1);
-	}
+		//interleave
+		else if (!from.interleaved && to.interleaved) {
+			toArray = toArray.map(function (value, idx, data) {
+				var targetOffset = ~~(idx / channels);
+				var targetChannel = idx % channels;
 
-	//clamp
-	value = Math.max(-1, Math.min(1, value));
-
-	//convert value to needed form
-	if (!to.float) {
-		if (to.signed) {
-			value = value * (to.maxInt - 1);
-		} else {
-			value = (value + 1) * to.maxInt;
+				return data[targetChannel * len + targetOffset];
+			});
 		}
-		value = Math.floor(value);
 	}
 
-	return value;
-}
-
-
-/**
- * Transform from inverleaved form to planar
- */
-function deinterleave (buffer, format) {
-	xxx
-};
-
-
-/**
- * Convert buffer from planar to interleaved form
- */
-function interleave (buffer, format) {
-	xxx
-};
-
-
-/**
- * Downmix channels
- */
-function downmix (buffer, format) {
-	xxx
-};
-
-
-/**
- * Upmix channels
- */
-function upmix (buffer, format) {
-	xxx
-};
-
-
-/**
- * Resample buffer
- */
-function resample (buffer, rateA, rateB, format) {
-	xxx
-};
-
-
-/**
- * Remap channels not changing the format
- */
-function mapChannels (buffer, channels, format) {
-	xxx
-};
-
-
-/**
- * Slice audio buffer
- */
-function slice (buffer, format) {
-	xxx
-};
-
-
-/**
- * Map samples not changing the format
- */
-function mapSamples (buffer, fn, format) {
-	if (!isNormalized(format)) format = normalizeFormat(format);
-
-	var samplesNumber = Math.floor(buffer.length / format.sampleSize);
-	var value, offset;
-
-	//don’t mutate the initial buffer
-	var buf = new Buffer(buffer.length);
-
-	for (var i = 0; i < samplesNumber; i++) {
-		offset = i * format.sampleSize;
-
-		//read value
-		value = buffer[format.readMethodName](offset);
-
-		//transform value
-		value = fn(value);
-
-		//avoid int outofbounds error
-		if (!format.float) value = Math.round(value);
-
-		//write value
-		buf[format.writeMethodName](value, offset);
+	//ensure endianness
+	if (!to.float && from.byteOrder !== to.byteOrder) {
+		var le = to.byteOrder === 'LE';
+		var view = new DataView(toArray.buffer);
+		var step = to.sampleSize;
+		var methodName = 'set' + getDataViewSuffix(to);
+		for (var i = 0, l = toArray.length; i < l; i++) {
+			view[methodName](i*step, toArray[i], le);
+		}
 	}
 
-	return buf;
+	return new Buffer(toArray.buffer);
 };
 
 
-/** Get frame size from the buffer, for a channel */
-function getFrameLength (buffer, format) {
-	if (!isNormalized(format)) format = normalizeFormat(format);
-
-	return Math.floor(buffer.length / format.sampleSize / format.channels);
+/**
+ * e. g. Float32, Uint16LE
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
+ */
+function getDataViewSuffix (format) {
+	return (format.float ? 'Float' : format.signed ? 'Int' : 'Uint') + format.bitDepth;
 };
+
 
 
 module.exports = {
-	//format utils
-	defaultFormat: defaultFormat,
-	getFormat: getFormat,
-	normalizeFormat: normalizeFormat,
-	stringifyFormat: stringifyFormat,
-	parseFormat: parseFormat,
-	isEqualFormat: isEqualFormat,
-	isNormalized: isNormalized,
-	createArray: createArray,
-
-	//buffers utils
-	getMethodSuffix: getMethodSuffix,
-	convertFormat: convert,
-	convertSample: convertSample,
-	getChannelData: getChannelData,
-	getChannelsData: getChannelsData,
-	copyToChannel: copyToChannel,
-	mapSamples: mapSamples,
-	getFrameLength: getFrameLength,
-	getOffset: getOffset
+	defaults: defaultFormat,
+	format: getFormat,
+	normalize: normalize,
+	equal: equal,
+	toBuffer: toBuffer,
+	toAudioBuffer: toAudioBuffer,
+	convert: convert
 };

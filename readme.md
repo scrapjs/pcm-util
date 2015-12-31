@@ -1,4 +1,4 @@
-Utils to tamper with PCM buffers.
+Utils to tamper with PCM formats/buffers.
 
 
 [![npm install pcm-util](https://nodei.co/npm/pcm-util.png?mini=true)](https://npmjs.org/package/pcm-util/)
@@ -7,93 +7,58 @@ Utils to tamper with PCM buffers.
 ```js
 var pcm = require('pcm-util');
 
+
 /** Default PCM format to use for any operations */
-pcm.defaultFormat === {
+pcm.defaults === {
 	signed: true,
 	float: false,
 	bitDepth: 16,
 	byteOrder: 'LE',
+	sampleSize: 4,
 	channels: 2,
 	sampleRate: 44100,
 	interleaved: true,
-	samplesPerFrame: 1024
+	samplesPerFrame: 1024,
+	id: 'S_16_LE_2_44100_I',
+	max: 32678,
+	min: -32768
 };
 
 
-/** Normalize passed format - align values and precalculate params */
-var format = pcm.normalizeFormat(format);
-format === {
-	//...all the default values
-
-	//precalculated params:
-	sampleSize: 4,
-	methodSuffix: 'Int16LE',
-	readMethodName: 'readInt16LE',
-	writeMethodName: 'writeInt16LE',
-	maxInt: 32678,
-	id: 'S_16_LE_2_44100_I'
-};
+/**
+ * Normalize passed format:
+ * ensure all the properties are present and do not contradict.
+ */
+pcm.normalize(format);
 
 
-/** Whether format is normalized, at least once */
-pcm.isNormalized(format);
-
-
-/** Retrieve format from any object, returns not normalized object */
-var format = pcm.getFormat(audioNode);
-
-
-/** Stringify/parse format identifier */
-var formatId = pcm.stringifyFormat(format);
-var format = pcm.parseFormat(formatId);
+/** Retrieve format-related properties from any object, return not normalized format */
+pcm.format(audioBuffer);
 
 
 /** Compare whether two formats are equal to each other */
-pcm.isEqualFormat(formatA, formatB);
+pcm.equal(a, b);
 
 
-/** Create typed array of a type, according to the format */
-var array = pcm.createArray(format);
-
-/** Ger format from typed array */
-var format = pcm.getArrayFormat(new Float32Array);
+/** Convert buffer of the `format` to audio buffer */
+pcm.toAudioBuffer(buffer, format);
 
 
-/** Get channel data from the buffer */
-var channelData = pcm.getChannelData(buffer, channel, fromFormat?, toFormat?);
+/** Convert audio buffer to buffer of the `format` */
+pcm.toBuffer(audioBuffer, format);
 
 
-/** Get all channels data, in form: [[LLLL...], [RRRR...], ...] */
-var channelsData = pcm.getChannelsData(buffer, fromFormat?, toFormat?);
-
-
-/** Copy channel data to buffer */
-pcm.copyToChannel(buffer, data, channel, format?);
-
-
-/** Convert buffer from format A to format B */
-var newBuffer = pcm.convertFormat(buffer, fromFormat, toFormat?);
-
-
-/** Convert value from format A to format B */
-var value = pcm.convertSample(value, fromFormat, toFormat?);
-
-
-/** Return buffer method suffix for the format, e.g. `UInt16LE` */
-var suffix = pcm.getMethodSuffix(format);
-
-
-/** Map buffer sample values, preserving the format. */
-var newBuffer = pcm.mapSamples(buffer, function (value) { return value/2 }, format?);
-
-
-/** Get channel frame length, i. e. number of samples per channel */
-var len = pcm.getFrameLength(buffer, format);
-
-
-/** Get offset in the buffer for the specific format, pass optionally frame length */
-var offset = getOffset(channel, idx, format, length?);
+/**
+ * Convert buffer from one format to another.
+ * Does interleaving/deinterleaving, converting data type.
+ * TODO: resampling, up/downmixing, zero-padding for `samplesPerFrame` property
+ */
+pcm.convert(buffer, fromFormat, toFormat);
 ```
 
+
 > **Related**<br/>
-> [audio-pcm-format](https://npmjs.org/package/audio-pcm-format) — converts audio pcm stream format.
+> [audio-buffer](https://npmjs.org/package/audio-buffer) — high-level audio data container.<br/>
+> [audio-buffer-utils](https://npmjs.org/package/audio-buffer-utils) — utils for audio buffers.<br/>
+> [audio-pcm-format](https://npmjs.org/package/audio-pcm-format) — pcm format converter stream.<br/>
+> [audio-node](https://npmjs.org/package/audio-node) — stream-based AudioNode implementation for node/browser.

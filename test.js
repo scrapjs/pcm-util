@@ -1,155 +1,168 @@
 var pcm = require('./');
 var assert = require('assert');
 var AudioBiquad = require('audio-biquad');
+var AudioBuffer = require('audio-buffer');
+var test = it;
 
 
-describe('Formats', function () {
-	it('Parse/stringify', function () {
-		var format = pcm.getFormat(pcm.defaultFormat);
-		var formatId = pcm.stringifyFormat(format);
-		var result = pcm.parseFormat(formatId);
-
-		assert.deepEqual(format, result);
+test('Max/min limits', function () {
+	var a = pcm.normalize({
+		float: false,
+		signed: true,
+		bitDepth: 16
 	});
+	assert.equal(a.max, 32767);
+	assert.equal(a.min, -32768);
 
-	it('Keep prototype values', function () {
-		var A = function(){};
-		A.prototype = Object.create({samplesPerFrame: 1});
-		var a = new A();
-		pcm.normalizeFormat(a);
-		assert.equal(a.samplesPerFrame, 1);
+	var a = pcm.normalize({
+		float: false,
+		signed: false,
+		bitDepth: 16
 	});
+	assert.equal(a.max, 65535);
+	assert.equal(a.min, 0);
 
-	it('Obtain format from the audio node', function () {
-		var aStream = AudioBiquad();
-		var aStreamFormat = pcm.getFormat(aStream);
-		var defaultFormat = pcm.getFormat(pcm.defaultFormat);
-
-		assert.notEqual(aStream, aStreamFormat);
-		assert.deepEqual(aStreamFormat, defaultFormat)
+	var a = pcm.normalize({
+		float: false,
+		signed: false,
+		bitDepth: 8
 	});
+	assert.equal(a.max, 255);
+	assert.equal(a.min, 0);
 
-	it('Do not return defaults', function () {
-		assert.deepEqual(pcm.getFormat(), {});
+	var a = pcm.normalize({
+		float: false,
+		signed: true,
+		bitDepth: 8
 	});
+	assert.equal(a.max, 127);
+	assert.equal(a.min, -128);
 
-	it('Normalize changed and normalized', function () {
-		var floatFormat = pcm.normalizeFormat(pcm.getFormat(pcm.defaultFormat));
-		floatFormat.float = true;
-		var floatFormat = pcm.normalizeFormat(floatFormat);
-
-		assert.deepEqual(pcm.normalizeFormat({float: true}), floatFormat);
+	var a = pcm.normalize({
+		float: true
 	});
-
-	it('Create typed array for the format', function () {
-		assert(pcm.createArray() instanceof Int16Array);
-		assert(pcm.createArray({float: true}) instanceof Float32Array);
-		assert(pcm.createArray({float: false}) instanceof Int16Array);
-		assert(pcm.createArray({float: false, bitDepth: 32}) instanceof Int32Array);
-		// assert(pcm.createArray({float: false, bitDepth: 32, signed: false}) instanceof UInt32Array);
-		assert(pcm.createArray({float: false, signed: false}) instanceof Uint16Array);
-	});
-
-	it('Infer format from the typed array', function () {
-		assert.deepEqual(pcm.getFormat(new Float32Array), pcm.getFormat({
-			float: true,
-			signed: false,
-			bitDepth: 32
-		}));
-		assert.deepEqual(pcm.getFormat(new Int16Array), pcm.getFormat({
-			float: false,
-			signed: true,
-			bitDepth: 16
-		}));
-	});
+	assert.equal(a.max, 1);
+	assert.equal(a.min, -1);
 });
 
+test.skip('Parse/stringify', function () {
+	var format = pcm.format(pcm.defaults);
+	var formatId = pcm.stringifyFormat(format);
+	var result = pcm.parseFormat(formatId);
 
-describe('Frame length', function () {
-	it('Float', function () {
-		var buf = new Buffer(8);
-		buf.writeFloatLE(1.0, 0);
-		buf.writeFloatLE(-0.5, 4);
-
-		assert(pcm.getFrameLength(buf, {float: true, channels:1}), 2);
-		assert(pcm.getFrameLength(buf, {float: true, channels:2}), 1);
-	});
+	assert.deepEqual(format, result);
 });
 
-describe('Sample conversions', function () {
-	it('FloatLE → Int16BE', function () {
-		var buf = new Buffer(8);
-		buf.writeFloatLE(1.0, 0);
-		buf.writeFloatLE(-0.5, 4);
-
-		var newBuf = pcm.convertFormat(buf, { float: true }, { float: false, signed: true, bitDepth: 16, byteOrder: 'BE' });
-		var val1 = newBuf.readInt16BE(0);
-		var val2 = newBuf.readInt16BE(2);
-
-		assert.equal(Math.pow(2, 15) - 1, val1);
-		assert.equal(-Math.pow(2, 14), val2);
-	});
-
-	it('Irrevertibility', function () {
-		assert.equal(pcm.convertSample(32767), 32767);
-		assert.equal(pcm.convertSample(0), 0);
-		assert.equal(pcm.convertSample(-32767), -32767);
-		assert.equal(pcm.convertSample(1, {float: true}, {float: true}), 1);
-	});
-
-	it('Float align', function () {
-		assert.equal(pcm.convertSample(2, {float: true}), 32767);
-	});
+test('Keep prototype values', function () {
+	var A = function(){};
+	A.prototype = Object.create({samplesPerFrame: 1});
+	var a = new A();
+	pcm.normalize(a);
+	assert.equal(a.samplesPerFrame, 1);
 });
 
-describe('Map samples', function () {
-	it('Float', function () {
-		var buf = new Buffer(8);
-		buf.writeFloatLE(1.0, 0);
-		buf.writeFloatLE(-0.5, 4);
+test('Obtain format from the audio node', function () {
+	var aStream = AudioBiquad();
+	var aStreamFormat = pcm.format(aStream);
+	var defaultFormat = pcm.format(pcm.defaults);
 
-		var newBuf = pcm.mapSamples(buf, function (value) { return -1 * value;}, { float: true });
-		var val1 = newBuf.readFloatLE(0);
-		var val2 = newBuf.readFloatLE(4);
-
-		assert.equal(-1, val1);
-		assert.equal(0.5, val2);
-	});
-
-	it('Int', function () {
-		var buf = new Buffer(16);
-		buf.writeInt16LE(20001, 0);
-		buf.writeInt16LE(-10001, 2);
-		buf.writeInt16LE(32767, 4);
-		buf.writeInt16LE(-32768, 6);
-
-		var newBuf = pcm.mapSamples(buf, function (value) { return -0.5 * value;});
-		var val1 = newBuf.readInt16LE(0);
-		var val2 = newBuf.readInt16LE(2);
-		var val3 = newBuf.readInt16LE(4);
-		var val4 = newBuf.readInt16LE(6);
-
-		assert.equal(-10000, val1);
-		assert.equal(5001, val2);
-		assert.equal(-16383, val3);
-		assert.equal(16384, val4);
-	});
+	assert.notEqual(aStream, aStreamFormat);
+	assert.deepEqual(aStreamFormat, defaultFormat)
 });
 
-describe('Get channel data', function () {
-	it('getChannelsData(from)', function () {
-		var buf = new Buffer(8);
-		buf.writeFloatLE(1.0, 0);
-		buf.writeFloatLE(-0.5, 4);
-		var data = pcm.getChannelsData(buf, {channels: 2, float: true});
-		assert.deepEqual(data, [[1],[-0.5]])
+test('Do not return defaults', function () {
+	assert.deepEqual(pcm.format(), {});
+});
+
+test('Normalize changed and normalized', function () {
+	var floatFormat = pcm.normalize(pcm.format(pcm.defaults));
+	floatFormat.float = true;
+	var floatFormat = pcm.normalize(floatFormat);
+
+	assert.deepEqual(pcm.normalize({float: true}), floatFormat);
+});
+
+test.skip('Create typed array for the format', function () {
+	assert(pcm.createArray() instanceof Int16Array);
+	assert(pcm.createArray({float: true}) instanceof Float32Array);
+	assert(pcm.createArray({float: false}) instanceof Int16Array);
+	assert(pcm.createArray({float: false, bitDepth: 32}) instanceof Int32Array);
+	// assert(pcm.createArray({float: false, bitDepth: 32, signed: false}) instanceof UInt32Array);
+	assert(pcm.createArray({float: false, signed: false}) instanceof Uint16Array);
+});
+
+test('Infer format from the typed array', function () {
+	assert.deepEqual(pcm.format(new Float32Array), pcm.format({
+		float: true,
+		signed: false,
+		bitDepth: 32
+	}));
+	assert.deepEqual(pcm.format(new Int16Array), pcm.format({
+		float: false,
+		signed: true,
+		bitDepth: 16
+	}));
+});
+
+test('FloatLE → Int16BE', function () {
+	var buf = new Buffer(8);
+	buf.writeFloatLE(1.0, 0);
+	buf.writeFloatLE(-0.5, 4);
+
+	var newBuf = pcm.convert(buf, { float: true }, { float: false, signed: true, bitDepth: 16, byteOrder: 'BE' });
+	var val1 = newBuf.readInt16BE(0);
+	var val2 = newBuf.readInt16BE(2);
+
+	assert.equal(Math.pow(2, 15) - 1, val1);
+	assert.equal(-Math.pow(2, 14), val2);
+});
+
+test.skip('interleave', function () {
+
+});
+
+test.skip('deinterleave', function () {
+
+});
+
+test('Buffer to AudioBuffer', function () {
+	var b = Buffer(6*4);
+	[0, 1, 0, -1, 0, 1].forEach(function (value, idx) {
+		b.writeFloatLE(value, idx * 4);
 	});
 
-	it('getChannelsData(from, to)', function () {
-		var buf = new Buffer(8);
-		buf.writeFloatLE(1, 0);
-		buf.writeFloatLE(-0.5, 4);
-		var data = pcm.getChannelsData(buf, {float: true}, {float: false});
-		assert.deepEqual(data, [[32767],[-16384]])
+	var aBuf = pcm.toAudioBuffer(b, {
+		float: true,
+		channels: 3
 	});
+
+	assert.deepEqual(aBuf.getChannelData(0), [0, -1]);
+	assert.deepEqual(aBuf.getChannelData(1), [1, 0]);
+	assert.deepEqual(aBuf.getChannelData(2), [0, 1]);
+
+	var aBuf = pcm.toAudioBuffer(b, {
+		float: true,
+		channels: 3,
+		interleaved: false
+	});
+
+	assert.deepEqual(aBuf.getChannelData(0), [0, 1]);
+	assert.deepEqual(aBuf.getChannelData(1), [0, -1]);
+	assert.deepEqual(aBuf.getChannelData(2), [0, 1]);
+});
+
+test('AudioBuffer to Buffer', function () {
+	var aBuffer = AudioBuffer([0, 1, 0, -1]);
+
+	var buffer = pcm.toBuffer(aBuffer, {
+		signed: true,
+		float: false,
+		interleaved: true
+	});
+
+	assert.equal(buffer.length, 8);
+	assert.equal(buffer.readInt16LE(0), 0);
+	assert.equal(buffer.readInt16LE(2), 0);
+	assert.equal(buffer.readInt16LE(4), 32767);
+	assert.equal(buffer.readInt16LE(6), -32768);
 });
