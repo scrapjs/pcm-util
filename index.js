@@ -171,6 +171,118 @@ function normalize (format) {
 };
 
 
+/** Convert AudioBuffer to Buffer with specified format */
+function toBuffer (audioBuffer, format) {
+	if (!isNormalized(format)) format = normalize(format);
+
+	var data = toArrayBuffer(audioBuffer);
+
+	var buffer = convert(data, {
+		float: true,
+		channels: audioBuffer.numberOfChannels,
+		sampleRate: audioBuffer.sampleRate,
+		interleaved: false
+	}, format);
+
+	return buffer;
+};
+
+
+/** Convert Buffer to AudioBuffer with specified format */
+function toAudioBuffer (buffer, format) {
+	if (!isNormalized(format)) format = normalize(format);
+
+	buffer = convert(buffer, format, {
+		channels: format.channels,
+		sampleRate: format.sampleRate,
+		interleaved: false,
+		float: true
+	});
+
+	return new AudioBuffer(format.channels, buffer, format.sampleRate);
+};
+
+
+/**
+ * Convert buffer from format A to format B.
+ */
+function convert (buffer, from, to) {
+	var value, channel, offset;
+
+	//ensure formats are full
+	if (!isNormalized(from)) from = normalize(from);
+	if (!isNormalized(to)) to = normalize(to);
+
+	//ignore needless conversion
+	if (equal(from ,to)) {
+		return buffer;
+	}
+
+	//convert buffer to arrayBuffer
+	var data = toArrayBuffer(buffer);
+
+	//create containers for conversion
+	var fromArray = new (arrayClass(from))(data);
+
+	//toArray is automatically filled with mapped values
+	//but in some cases mapped badly, e. g. float → int(round + rotate)
+	var toArray = new (arrayClass(to))(fromArray);
+
+	//if range differ, we should apply more thoughtful mapping
+	if (from.max !== to.max) {
+		fromArray.forEach(function (value, idx) {
+			//ignore not changed range
+			//bring to 0..1
+			var normalValue = (value - from.min) / (from.max - from.min);
+
+			//bring to new format ranges
+			value = normalValue * (to.max - to.min) + to.min;
+
+			//clamp (buffers does not like values outside of bounds)
+			toArray[idx] = Math.max(to.min, Math.min(to.max, value));
+		});
+	}
+
+	//reinterleave, if required
+	if (from.interleaved != to.interleaved) {
+		var channels = from.channels;
+		var len = Math.floor(fromArray.length / channels);
+
+		//deinterleave
+		if (from.interleaved && !to.interleaved) {
+			toArray = toArray.map(function (value, idx, data) {
+				var targetOffset = idx % len;
+				var targetChannel = ~~(idx / len);
+
+				return data[targetOffset * channels + targetChannel];
+			});
+		}
+		//interleave
+		else if (!from.interleaved && to.interleaved) {
+			toArray = toArray.map(function (value, idx, data) {
+				var targetOffset = ~~(idx / channels);
+				var targetChannel = idx % channels;
+
+				return data[targetChannel * len + targetOffset];
+			});
+		}
+	}
+
+	//ensure endianness
+	if (!to.float && from.byteOrder !== to.byteOrder) {
+		var le = to.byteOrder === 'LE';
+		var view = new DataView(toArray.buffer);
+		var step = to.sampleSize;
+		var methodName = 'set' + getDataViewSuffix(to);
+		for (var i = 0, l = toArray.length; i < l; i++) {
+			view[methodName](i*step, toArray[i], le);
+		}
+	}
+
+	return new Buffer(toArray.buffer);
+};
+
+
 /**
  * Check whether format is normalized, at least once
  */
@@ -296,118 +408,6 @@ function fromObject (obj) {
 
 	return format;
 }
-
-
-/** Convert AudioBuffer to Buffer with specified format */
-function toBuffer (audioBuffer, format) {
-	if (!isNormalized(format)) format = normalize(format);
-
-	var data = toArrayBuffer(audioBuffer);
-
-	var buffer = convert(data, {
-		float: true,
-		channels: audioBuffer.numberOfChannels,
-		sampleRate: audioBuffer.sampleRate,
-		interleaved: false
-	}, format);
-
-	return buffer;
-};
-
-
-/** Convert Buffer to AudioBuffer with specified format */
-function toAudioBuffer (buffer, format) {
-	if (!isNormalized(format)) format = normalize(format);
-
-	buffer = convert(buffer, format, {
-		channels: format.channels,
-		sampleRate: format.sampleRate,
-		interleaved: false,
-		float: true
-	});
-
-	return new AudioBuffer(format.channels, buffer, format.sampleRate);
-};
-
-
-/**
- * Convert buffer from format A to format B.
- */
-function convert (buffer, from, to) {
-	var value, channel, offset;
-
-	//ensure formats are full
-	if (!isNormalized(from)) from = normalize(from);
-	if (!isNormalized(to)) to = normalize(to);
-
-	//ignore needless conversion
-	if (equal(from ,to)) {
-		return buffer;
-	}
-
-	//convert buffer to arrayBuffer
-	var data = toArrayBuffer(buffer);
-
-	//create containers for conversion
-	var fromArray = new (arrayClass(from))(data);
-
-	//toArray is automatically filled with mapped values
-	//but in some cases mapped badly, e. g. float → int(round + rotate)
-	var toArray = new (arrayClass(to))(fromArray);
-
-	//if range differ, we should apply more thoughtful mapping
-	if (from.max !== to.max) {
-		fromArray.forEach(function (value, idx) {
-			//ignore not changed range
-			//bring to 0..1
-			var normalValue = (value - from.min) / (from.max - from.min);
-
-			//bring to new format ranges
-			value = normalValue * (to.max - to.min) + to.min;
-
-			//clamp (buffers does not like values outside of bounds)
-			toArray[idx] = Math.max(to.min, Math.min(to.max, value));
-		});
-	}
-
-	//reinterleave, if required
-	if (from.interleaved != to.interleaved) {
-		var channels = from.channels;
-		var len = Math.floor(fromArray.length / channels);
-
-		//deinterleave
-		if (from.interleaved && !to.interleaved) {
-			toArray = toArray.map(function (value, idx, data) {
-				var targetOffset = idx % len;
-				var targetChannel = ~~(idx / len);
-
-				return data[targetOffset * channels + targetChannel];
-			});
-		}
-		//interleave
-		else if (!from.interleaved && to.interleaved) {
-			toArray = toArray.map(function (value, idx, data) {
-				var targetOffset = ~~(idx / channels);
-				var targetChannel = idx % channels;
-
-				return data[targetChannel * len + targetOffset];
-			});
-		}
-	}
-
-	//ensure endianness
-	if (!to.float && from.byteOrder !== to.byteOrder) {
-		var le = to.byteOrder === 'LE';
-		var view = new DataView(toArray.buffer);
-		var step = to.sampleSize;
-		var methodName = 'set' + getDataViewSuffix(to);
-		for (var i = 0, l = toArray.length; i < l; i++) {
-			view[methodName](i*step, toArray[i], le);
-		}
-	}
-
-	return new Buffer(toArray.buffer);
-};
 
 
 /**
