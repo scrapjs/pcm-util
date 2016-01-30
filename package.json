@@ -36,6 +36,6 @@
   "devDependencies": {
     "audio-biquad": "^1.0.2",
     "audio-sink": "^1.0.1",
-    "tst": "0.0.2"
+    "tst": "^1.1.8"
   }
 }

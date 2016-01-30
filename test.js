@@ -2,7 +2,7 @@ var pcm = require('./');
 var assert = require('assert');
 var AudioBiquad = require('audio-biquad');
 var AudioBuffer = require('audio-buffer');
-var test = require('tst');
+var test = require('tst')//.only();
 
 
 test('Max/min limits', function () {
@@ -164,5 +164,21 @@ test('AudioBuffer to Buffer', function () {
 	assert.equal(buffer.readInt16LE(0), 0);
 	assert.equal(buffer.readInt16LE(2), 0);
 	assert.equal(buffer.readInt16LE(4), 32767);
+	assert.equal(buffer.readInt16LE(6), -32768);
+});
+
+test('toBuffer detect channels', function () {
+	var aBuffer = AudioBuffer(1, [0, 1, 0, -1]);
+
+	var buffer = pcm.toBuffer(aBuffer, {
+		signed: true,
+		float: false,
+		interleaved: true
+	});
+
+	assert.equal(buffer.length, 8);
+	assert.equal(buffer.readInt16LE(0), 0);
+	assert.equal(buffer.readInt16LE(4), 0);
+	assert.equal(buffer.readInt16LE(2), 32767);
 	assert.equal(buffer.readInt16LE(6), -32768);
 });
