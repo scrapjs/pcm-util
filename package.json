@@ -11,7 +11,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/audio-lab/pcm-util"
+    "url": "https://github.com/audiojs/pcm-util"
   },
   "keywords": [
     "audio",
@@ -24,9 +24,9 @@
   "author": "Deema Yvanow <dfcreative@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/audio-lab/pcm-util/issues"
+    "url": "https://github.com/audiojs/pcm-util/issues"
   },
-  "homepage": "https://github.com/audio-lab/pcm-util",
+  "homepage": "https://github.com/audiojs/pcm-util",
   "dependencies": {
     "is-audio-buffer": "^1.0.1",
     "is-buffer": "^1.1.0",
