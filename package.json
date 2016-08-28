@@ -34,8 +34,7 @@
     "to-array-buffer": "^1.0.0"
   },
   "devDependencies": {
-    "audio-biquad": "^1.0.2",
-    "audio-sink": "^1.0.1",
+    "audio-biquad": "^1.1.2",
     "tst": "^1.1.8"
   }
 }

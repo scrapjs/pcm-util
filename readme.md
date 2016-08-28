@@ -1,3 +1,5 @@
+# pcm-util [![Build Status](https://travis-ci.org/audiojs/pcm-util.svg?branch=master)](https://travis-ci.org/audiojs/pcm-util) [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
+
 Utils to tamper with PCM formats/buffers.
 
 
