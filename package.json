@@ -6,9 +6,6 @@
   "scripts": {
     "test": "node test.js"
   },
-  "files": [
-    "index.js"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/audiojs/pcm-util"
