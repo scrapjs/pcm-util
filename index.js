@@ -22,7 +22,6 @@ var defaultFormat = {
 	sampleRate: 44100,
 	interleaved: true,
 	samplesPerFrame: 1024,
-	sampleSize: 2,
 	id: 'S_16_LE_2_44100_I',
 	max: 32678,
 	min: -32768
@@ -53,14 +52,14 @@ function getFormat (obj) {
 
 	//if audio buffer - we know it’s format
 	else if (isAudioBuffer(obj)) {
+		var arrayFormat = fromTypedArray(obj.getChannelData(0))
 		return {
 			sampleRate: obj.sampleRate,
 			channels: obj.numberOfChannels,
 			samplesPerFrame: obj.length,
 			float: true,
 			signed: true,
-			bitDepth: 32,
-			sampleSize: 4
+			bitDepth: arrayFormat.bitDepth
 		}
 	}
 
@@ -125,7 +124,7 @@ function equal (a, b) {
 
 /**
  * Normalize format, mutable.
- * Precalculate format params: sampleSize, methodSuffix, id, maxInt.
+ * Precalculate format params: methodSuffix, id, maxInt.
  * Fill absent params.
  */
 function normalize (format) {
@@ -146,9 +145,6 @@ function normalize (format) {
 
 	//for words byte length does not matter
 	else if (format.bitDepth <= 8) format.byteOrder = ''
-
-	//NOTE: same as TypedArray.BYTES_PER_ELEMENT
-	format.sampleSize = format.bitDepth / 8
 
 	//max/min values
 	if (format.float) {
@@ -176,12 +172,14 @@ function toBuffer (audioBuffer, format) {
 	if (!isNormalized(format)) format = normalize(format)
 
 	var data = toArrayBuffer(audioBuffer)
+	var arrayFormat = fromTypedArray(audioBuffer.getChannelData(0))
 
 	var buffer = convert(data, {
 		float: true,
 		channels: audioBuffer.numberOfChannels,
 		sampleRate: audioBuffer.sampleRate,
-		interleaved: false
+		interleaved: false,
+		bitDepth: arrayFormat.bitDepth
 	}, format)
 
 	return buffer
@@ -199,9 +197,7 @@ function toAudioBuffer (buffer, format) {
 		float: true
 	})
 
-	return new AudioBuffer(format.channels, buffer, format.sampleRate, {
-		floatArray: arrayClass(format)
-	})
+	return new AudioBuffer(format.channels, buffer, format.sampleRate)
 }
 
 
@@ -272,7 +268,7 @@ function convert (buffer, from, to) {
 	if (!to.float && from.byteOrder !== to.byteOrder) {
 		var le = to.byteOrder === 'LE'
 		var view = new DataView(toArray.buffer)
-		var step = to.sampleSize
+		var step = to.bitDepth / 8
 		var methodName = 'set' + getDataViewSuffix(to)
 		for (var i = 0, l = toArray.length; i < l; i++) {
 			view[methodName](i*step, toArray[i], le)

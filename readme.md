@@ -25,7 +25,6 @@ pcm.defaults === {
 	byteOrder: 'LE',
 	max: 32767,
 	min: -32768,
-	sampleSize: 4,
 	samplesPerFrame: 1024,
 	id: 'S_16_LE_2_44100_I'
 }

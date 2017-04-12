@@ -193,3 +193,23 @@ test('toBuffer detect channels', function (t) {
 	assert.equal(buffer.readInt16LE(6), -32768);
 	t.end()
 });
+
+test('AubioBuffer converting consistency', function (t) {
+	//64 array
+	var src = new AudioBuffer(pcm.defaults.samplesPerFrame, {floatArray: Float64Array, isWAA: false})
+	var buf = pcm.toBuffer(src)
+	assert.equal(buf.byteLength, pcm.defaults.samplesPerFrame * pcm.defaults.bitDepth * src.numberOfChannels / 8)
+
+	var dst = pcm.toAudioBuffer(buf)
+	assert.equal(src.length, dst.length)
+
+	//32 array
+	var src = new AudioBuffer(pcm.defaults.samplesPerFrame, {floatArray: Float32Array})
+	var buf = pcm.toBuffer(src)
+	assert.equal(buf.byteLength, pcm.defaults.samplesPerFrame * pcm.defaults.bitDepth * src.numberOfChannels / 8)
+
+	var dst = pcm.toAudioBuffer(buf)
+	assert.equal(src.length, dst.length)
+
+	t.end()
+})
