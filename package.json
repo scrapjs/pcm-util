@@ -1,6 +1,6 @@
 {
   "name": "pcm-util",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Audio PCM utils: convert audiobuffer to buffer and vice-versa in defined format",
   "main": "index.js",
   "scripts": {
