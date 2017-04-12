@@ -2,10 +2,10 @@ var pcm = require('./');
 var assert = require('assert');
 var AudioBiquad = require('audio-biquad');
 var AudioBuffer = require('audio-buffer');
-var test = require('tst')//.only();
+var test = require('tape')//.only();
 
 
-test('Max/min limits', function () {
+test('Max/min limits', function (t) {
 	var a = pcm.normalize({
 		float: false,
 		signed: true,
@@ -43,6 +43,8 @@ test('Max/min limits', function () {
 	});
 	assert.equal(a.max, 1);
 	assert.equal(a.min, -1);
+
+	t.end()
 });
 
 // test.skip('Parse/stringify', function () {
@@ -53,33 +55,37 @@ test('Max/min limits', function () {
 // 	assert.deepEqual(format, result);
 // });
 
-test('Keep prototype values', function () {
+test('Keep prototype values', function (t) {
 	var A = function(){};
 	A.prototype = Object.create({samplesPerFrame: 1});
 	var a = new A();
 	pcm.normalize(a);
 	assert.equal(a.samplesPerFrame, 1);
+	t.end()
 });
 
-test('Obtain format from the audio node', function () {
+test('Obtain format from the audio node', function (t) {
 	var aStream = AudioBiquad();
 	var aStreamFormat = pcm.format(aStream);
 	var defaultFormat = pcm.format(pcm.defaults);
 
 	assert.notEqual(aStream, aStreamFormat);
 	assert.deepEqual(aStreamFormat, defaultFormat)
+	t.end()
 });
 
-test('Do not return defaults', function () {
+test('Do not return defaults', function (t) {
 	assert.deepEqual(pcm.format(), {});
+	t.end()
 });
 
-test('Normalize changed and normalized', function () {
+test('Normalize changed and normalized', function (t) {
 	var floatFormat = pcm.normalize(pcm.format(pcm.defaults));
 	floatFormat.float = true;
 	var floatFormat = pcm.normalize(floatFormat);
 
 	assert.deepEqual(pcm.normalize({float: true}), floatFormat);
+	t.end()
 });
 
 // test.skip('Create typed array for the format', function () {
@@ -91,7 +97,7 @@ test('Normalize changed and normalized', function () {
 // 	assert(pcm.createArray({float: false, signed: false}) instanceof Uint16Array);
 // });
 
-test('Infer format from the typed array', function () {
+test('Infer format from the typed array', function (t) {
 	assert.deepEqual(pcm.format(new Float32Array), pcm.format({
 		float: true,
 		signed: false,
@@ -102,9 +108,10 @@ test('Infer format from the typed array', function () {
 		signed: true,
 		bitDepth: 16
 	}));
+	t.end()
 });
 
-test('FloatLE → Int16BE', function () {
+test('FloatLE → Int16BE', function (t) {
 	var buf = new Buffer(8);
 	buf.writeFloatLE(1.0, 0);
 	buf.writeFloatLE(-0.5, 4);
@@ -115,6 +122,7 @@ test('FloatLE → Int16BE', function () {
 
 	assert.equal(Math.pow(2, 15) - 1, val1);
 	assert.equal(-Math.pow(2, 14), val2);
+	t.end()
 });
 
 // test.skip('interleave', function () {
@@ -125,7 +133,7 @@ test('FloatLE → Int16BE', function () {
 
 // });
 
-test('Buffer to AudioBuffer', function () {
+test('Buffer to AudioBuffer', function (t) {
 	var b = Buffer(6*4);
 	[0, 1, 0, -1, 0, 1].forEach(function (value, idx) {
 		b.writeFloatLE(value, idx * 4);
@@ -149,9 +157,10 @@ test('Buffer to AudioBuffer', function () {
 	assert.deepEqual(aBuf.getChannelData(0), [0, 1]);
 	assert.deepEqual(aBuf.getChannelData(1), [0, -1]);
 	assert.deepEqual(aBuf.getChannelData(2), [0, 1]);
+	t.end()
 });
 
-test('AudioBuffer to Buffer', function () {
+test('AudioBuffer to Buffer', function (t) {
 	var aBuffer = AudioBuffer([0, 1, 0, -1]);
 
 	var buffer = pcm.toBuffer(aBuffer, {
@@ -165,9 +174,10 @@ test('AudioBuffer to Buffer', function () {
 	assert.equal(buffer.readInt16LE(2), 0);
 	assert.equal(buffer.readInt16LE(4), 32767);
 	assert.equal(buffer.readInt16LE(6), -32768);
+	t.end()
 });
 
-test('toBuffer detect channels', function () {
+test('toBuffer detect channels', function (t) {
 	var aBuffer = AudioBuffer(1, [0, 1, 0, -1]);
 
 	var buffer = pcm.toBuffer(aBuffer, {
@@ -181,4 +191,5 @@ test('toBuffer detect channels', function () {
 	assert.equal(buffer.readInt16LE(4), 0);
 	assert.equal(buffer.readInt16LE(2), 32767);
 	assert.equal(buffer.readInt16LE(6), -32768);
+	t.end()
 });

@@ -199,7 +199,9 @@ function toAudioBuffer (buffer, format) {
 		float: true
 	})
 
-	return new AudioBuffer(format.channels, buffer, format.sampleRate)
+	return new AudioBuffer(format.channels, buffer, format.sampleRate, {
+		floatArray: arrayClass(format)
+	})
 }
 
 
