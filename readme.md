@@ -1,5 +1,7 @@
 # pcm-util [![Build Status](https://travis-ci.org/audiojs/pcm-util.svg?branch=master)](https://travis-ci.org/audiojs/pcm-util) [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/audiojs/pcm-util.svg)](https://greenkeeper.io/)
+
 Utils to tamper with PCM formats/buffers. In particular, converting _Buffer_ to _AudioBuffer_ or _AudioBuffer_ to _Buffer_.
 
 
