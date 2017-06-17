@@ -1,5 +1,4 @@
-# pcm-util [![unstable](https://img.shields.io/badge/stability-unstable-green.svg)](http://github.com/badges/stability-badges)
-[![Build Status](https://img.shields.io/travis/audiojs/pcm-util.svg)](https://travis-ci.org/audiojs/pcm-util) [![Greenkeeper badge](https://badges.greenkeeper.io/audiojs/pcm-util.svg)](https://greenkeeper.io/)
+# pcm-util [![unstable](https://img.shields.io/badge/stability-unstable-green.svg)](http://github.com/badges/stability-badges) [![Build Status](https://img.shields.io/travis/audiojs/pcm-util.svg)](https://travis-ci.org/audiojs/pcm-util) [![Greenkeeper badge](https://badges.greenkeeper.io/audiojs/pcm-util.svg)](https://greenkeeper.io/)
 
 Utils to tamper with PCM formats/buffers. In particular, converting _Buffer_ to _AudioBuffer_, _ArrayBuffer_ to _AudioBuffer_, _AudioBuffer_ to _ArrayBuffer_ or _AudioBuffer_ to _Buffer_.
 
