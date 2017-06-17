@@ -59,7 +59,7 @@ Convert audio buffer to array buffer with the `format`.
 
 ### `pcm.convert(buffer, fromFormat, toFormat)`
 
-Convert buffer from one format to another.
+Convert array buffer from one format to another.
 
 
 ### Related
