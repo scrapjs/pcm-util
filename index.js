@@ -3,7 +3,6 @@
  */
 'use strict'
 
-var toArrayBuffer = require('to-array-buffer')
 var AudioBuffer = require('audio-buffer')
 var os = require('os')
 var isAudioBuffer = require('is-audio-buffer')
@@ -18,7 +17,7 @@ var defaultFormat = {
 	float: false,
 	bitDepth: 16,
 	byteOrder: os.endianness instanceof Function ? os.endianness() : 'LE',
-	channels: 2,
+	channels: 1,
 	sampleRate: 44100,
 	interleaved: true,
 	samplesPerFrame: 1024,
@@ -168,10 +167,23 @@ function normalize (format) {
 
 
 /** Convert AudioBuffer to Buffer with specified format */
-function toBuffer (audioBuffer, format) {
+function toArrayBuffer (audioBuffer, format) {
 	if (!isNormalized(format)) format = normalize(format)
 
-	var data = toArrayBuffer(audioBuffer)
+	var data
+
+	//convert to arraybuffer
+	if (audioBuffer._data) data = audioBuffer._data.buffer;
+
+	else {
+		var floatArray = audioBuffer.getChannelData(0).constructor;
+		data = new floatArray(audioBuffer.length * audioBuffer.numberOfChannels);
+
+		for (var channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+			data.set(audioBuffer.getChannelData(channel), channel * audioBuffer.length);
+		}
+	}
+
 	var arrayFormat = fromTypedArray(audioBuffer.getChannelData(0))
 
 	var buffer = convert(data, {
@@ -197,7 +209,22 @@ function toAudioBuffer (buffer, format) {
 		float: true
 	})
 
-	return new AudioBuffer(format.channels, buffer, format.sampleRate)
+	var len = Math.floor(buffer.byteLength * .25 / format.channels)
+
+	var audioBuffer = new AudioBuffer(null, {
+		length: len,
+		numberOfChannels: format.channels,
+		sampleRate: format.sampleRate
+	})
+
+	var step = len * 4
+	for (var channel = 0; channel < format.channels; channel++) {
+		var offset = channel * step
+		var data = new Float32Array(buffer.slice(offset, offset + step))
+		audioBuffer.getChannelData(channel).set(data)
+	}
+
+	return audioBuffer
 }
 
 
@@ -209,13 +236,23 @@ function convert (buffer, from, to) {
 	if (!isNormalized(from)) from = normalize(from)
 	if (!isNormalized(to)) to = normalize(to)
 
-	//ignore needless conversion
-	if (equal(from ,to)) {
-		return buffer
+	//convert buffer/alike to arrayBuffer
+	var data
+	if (buffer instanceof ArrayBuffer) {
+		data = buffer
+	}
+	else if (ArrayBuffer.isView(buffer)) {
+		if (buffer.byteOffset != null) data = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+		else data = buffer.buffer;
+	}
+	else {
+		data = (new Uint8Array(buffer.length != null ? buffer : [buffer])).buffer
 	}
 
-	//convert buffer to arrayBuffer
-	var data = toArrayBuffer(buffer)
+	//ignore needless conversion
+	if (equal(from ,to)) {
+		return data
+	}
 
 	//create containers for conversion
 	var fromArray = new (arrayClass(from))(data)
@@ -275,7 +312,7 @@ function convert (buffer, from, to) {
 		}
 	}
 
-	return new Buffer(toArray.buffer)
+	return toArray.buffer
 }
 
 
@@ -398,8 +435,11 @@ function fromObject (obj) {
 	})
 
 	//some AudioNode/etc-specific options
-	if (obj.channelCount != null) {
-		format.channels = obj.channelCount
+	if (!format.channels && (obj.channelCount || obj.numberOfChannels)) {
+		format.channels = obj.channelCount || obj.numberOfChannels
+	}
+	if (!format.sampleRate && obj.rate) {
+		format.sampleRate = obj.rate
 	}
 
 	return format
@@ -421,7 +461,7 @@ module.exports = {
 	format: getFormat,
 	normalize: normalize,
 	equal: equal,
-	toBuffer: toBuffer,
+	toArrayBuffer: toArrayBuffer,
 	toAudioBuffer: toAudioBuffer,
 	convert: convert
 }

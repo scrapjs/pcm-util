@@ -1,7 +1,7 @@
 {
   "name": "pcm-util",
   "version": "2.1.0",
-  "description": "Audio PCM utils: convert audiobuffer to buffer and vice-versa in defined format",
+  "description": "Convert audiobuffer to arraybuffer and back with defined pcm format",
   "main": "index.js",
   "scripts": {
     "test": "node test.js"
@@ -12,16 +12,10 @@
   },
   "keywords": [
     "audio",
-    "pcm",
-    "util",
-    "sound",
-    "interleave",
-    "audiobuffer",
-    "buffer",
     "audiojs",
-    "wav",
-    "encode",
-    "decode"
+    "pcm",
+    "sound",
+    "audiobuffer"
   ],
   "author": "Dima Yv <df.creative@gmail.com>",
   "license": "MIT",
@@ -30,13 +24,13 @@
   },
   "homepage": "https://github.com/audiojs/pcm-util",
   "dependencies": {
-    "audio-buffer": "^3.0.0",
+    "audio-buffer": "^4.0.1",
     "is-audio-buffer": "^1.0.1",
-    "is-buffer": "^1.1.0",
-    "to-array-buffer": "^1.0.0"
+    "is-buffer": "^1.1.0"
   },
   "devDependencies": {
     "audio-biquad": "^1.1.2",
+    "audio-buffer-utils": "^5.0.1",
     "tape": "^4.6.3"
   }
 }
