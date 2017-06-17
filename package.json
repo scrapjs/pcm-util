@@ -1,6 +1,6 @@
 {
   "name": "pcm-util",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Convert audiobuffer to arraybuffer and back with defined pcm format",
   "main": "index.js",
   "scripts": {
