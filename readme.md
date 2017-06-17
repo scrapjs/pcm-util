@@ -1,8 +1,7 @@
-# pcm-util [![Build Status](https://travis-ci.org/audiojs/pcm-util.svg?branch=master)](https://travis-ci.org/audiojs/pcm-util) [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
+# pcm-util [![unstable](https://img.shields.io/badge/stability-unstable-green.svg)](http://github.com/badges/stability-badges) [![Build Status](https://img.shields.io/travis/audiojs/pcm-util.svg)](https://travis-ci.org/audiojs/pcm-util) [![Greenkeeper badge](https://badges.greenkeeper.io/audiojs/pcm-util.svg)](https://greenkeeper.io/)
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/audiojs/pcm-util.svg)](https://greenkeeper.io/)
+Utils to tamper with PCM formats/buffers. In particular, converting _Buffer_ to _AudioBuffer_, _ArrayBuffer_ to _AudioBuffer_, _AudioBuffer_ to _ArrayBuffer_ or _AudioBuffer_ to _Buffer_.
 
-Utils to tamper with PCM formats/buffers. In particular, converting _Buffer_ to _AudioBuffer_ or _AudioBuffer_ to _Buffer_.
 
 
 [![npm install pcm-util](https://nodei.co/npm/pcm-util.png?mini=true)](https://npmjs.org/package/pcm-util/)
@@ -40,7 +39,7 @@ Normalize passed format: ensure all the properties are present and do not contra
 
 ### `pcm.format(audioBuffer)`
 
-Retrieve format-related properties from any object, return not normalized format.
+Retrieve format-related properties from audio buffer, return not normalized format.
 
 
 ### `pcm.equal(a, b)`
@@ -50,12 +49,12 @@ Compare whether two formats are equal to each other.
 
 ### `pcm.toAudioBuffer(buffer, format)`
 
-Convert buffer of the `format` to audio buffer.
+Convert buffer/arrayBuffer with the `format` to audio buffer.
 
 
-### `pcm.toBuffer(audioBuffer, format)`
+### `pcm.toArrayBuffer(audioBuffer, format)`
 
-Convert audio buffer to buffer of the `format`.
+Convert audio buffer to array buffer with the `format`.
 
 
 ### `pcm.convert(buffer, fromFormat, toFormat)`
@@ -65,7 +64,5 @@ Convert buffer from one format to another.
 
 ### Related
 
-> [audio-buffer](https://npmjs.org/package/audio-buffer) — high-level audio data container.<br/>
+> [audio-buffer](https://npmjs.org/package/audio-buffer) — audio buffer polyfill.<br/>
 > [audio-buffer-utils](https://npmjs.org/package/audio-buffer-utils) — utils for audio buffers.<br/>
-> [audio-pcm-format](https://npmjs.org/package/audio-pcm-format) — pcm format converter stream.<br/>
-> [audio-node](https://npmjs.org/package/audio-node) — stream-based AudioNode implementation for node/browser.
