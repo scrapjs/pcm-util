@@ -25,7 +25,7 @@
   "homepage": "https://github.com/audiojs/pcm-util",
   "dependencies": {
     "audio-buffer": "^4.0.1",
-    "is-audio-buffer": "^1.0.1",
+    "is-audio-buffer": "^1.1.0",
     "is-buffer": "^1.1.0"
   },
   "devDependencies": {
