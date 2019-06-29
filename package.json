@@ -31,6 +31,6 @@
   "devDependencies": {
     "audio-biquad": "^1.1.2",
     "audio-buffer-utils": "^5.0.1",
-    "tape": "^4.6.3"
+    "tape": "^4.11.0"
   }
 }
