@@ -26,7 +26,7 @@
   "dependencies": {
     "audio-buffer": "^4.0.1",
     "is-audio-buffer": "^1.0.1",
-    "is-buffer": "^1.1.0"
+    "is-buffer": "^2.0.4"
   },
   "devDependencies": {
     "audio-biquad": "^1.1.2",
