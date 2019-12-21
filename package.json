@@ -29,7 +29,7 @@
     "is-buffer": "^1.1.0"
   },
   "devDependencies": {
-    "audio-biquad": "^1.1.2",
+    "audio-biquad": "^1.1.3",
     "audio-buffer-utils": "^5.0.1",
     "tape": "^4.6.3"
   }
